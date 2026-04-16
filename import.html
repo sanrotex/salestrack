@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SalesTrack — Import Firebase → Supabase</title>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+body{font-family:'Segoe UI',sans-serif;background:#0d0f14;color:#e2e8f0;padding:20px;max-width:700px;margin:0 auto}
+h2{color:#818cf8}
+.log{background:#111520;border:1px solid #1c2333;border-radius:10px;padding:16px;margin:16px 0;font-family:monospace;font-size:12px;line-height:2;max-height:500px;overflow-y:auto;white-space:pre-wrap}
+.ok{color:#34d399}.err{color:#f87171}.warn{color:#fbbf24}.info{color:#94a3b8}
+button{background:#6366f1;color:white;border:none;padding:12px 24px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin:8px 4px}
+button:hover{background:#818cf8}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,textarea{background:#111520;border:1px solid #1c2333;color:#e2e8f0;border-radius:8px;padding:10px;font-size:13px;width:100%;margin:6px 0;font-family:monospace}
+.step{background:#111520;border:1px solid #1c2333;border-radius:12px;padding:16px;margin:12px 0}
+.step h3{margin:0 0 8px 0;font-size:14px;color:#818cf8}
+</style>
+</head>
+<body>
+<h2>Import Firebase → Supabase</h2>
+
+<div class="step" id="step1">
+<h3>Pas 1: Configurație Firebase</h3>
+<p style="font-size:12px;color:#94a3b8" id="cfg-status"></p>
+<textarea id="fb-cfg" rows="3" placeholder="Lipește codul de conectare Firebase (base64) sau JSON config..."></textarea>
+<button onclick="connectFb()">Conectează Firebase</button>
+</div>
+
+<div class="step" id="step2" style="display:none">
+<h3>Pas 2: Import</h3>
+<button onclick="doImport()" id="btn-import">Importă tot din Firebase în Supabase</button>
+</div>
+
+<div class="log" id="log"></div>
+
+<script>
+var SB_URL='https://peeehzlhdfzdyzekzdiu.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlZWVoemxoZGZ6ZHl6ZWt6ZGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDEyODgsImV4cCI6MjA5MTgxNzI4OH0.EzbX5FYEC9IWrJA7HVu2gHDDa7qZn59396u2cbKivxk';
+var sb = supabase.createClient(SB_URL, SB_KEY);
+var fbDb = null;
+
+var _PM = {agentId:'agent_id',agentId2:'agent_id2',clientId:'client_id',lastContact:'last_contact',createdAt:'created_at',startDate:'start_date',validUntil:'valid_until'};
+function toDb(o){if(!o)return o;var r={};for(var k in o)r[_PM[k]||k]=o[k];return r}
+
+function log(msg, cls) {
+  var el = document.getElementById('log');
+  el.innerHTML += '<div class="' + (cls||'info') + '">' + msg + '</div>';
+  el.scrollTop = el.scrollHeight;
+}
+
+function codeToCfg(c){try{return JSON.parse(decodeURIComponent(escape(atob(c.trim()))));}catch(e){return null;}}
+
+// Check if Firebase config exists in localStorage
+var savedCfg = null;
+try {
+  var sc = localStorage.getItem("stcrm_firebase_config");
+  if (sc) {
+    savedCfg = JSON.parse(sc);
+    document.getElementById('cfg-status').innerHTML = '✅ Config Firebase găsit în browser: <b>' + savedCfg.projectId + '</b>';
+    document.getElementById('fb-cfg').value = btoa(unescape(encodeURIComponent(JSON.stringify(savedCfg))));
+  } else {
+    document.getElementById('cfg-status').innerHTML = '⚠️ Nu am găsit config Firebase în localStorage. Lipește codul/config-ul manual.';
+  }
+} catch(e) {
+  document.getElementById('cfg-status').innerHTML = '⚠️ Nu am găsit config Firebase. Lipește codul/config-ul manual.';
+}
+
+function connectFb() {
+  var txt = document.getElementById('fb-cfg').value.trim();
+  if (!txt) { alert('Lipește configurația Firebase!'); return; }
+
+  var cfg = null;
+  if (txt.charAt(0) === '{') {
+    try { cfg = JSON.parse(txt); } catch(e) {}
+  }
+  if (!cfg) {
+    cfg = codeToCfg(txt);
+  }
+  if (!cfg || !cfg.apiKey || !cfg.databaseURL) {
+    alert('Config invalid! Trebuie să conțină apiKey și databaseURL.');
+    return;
+  }
+
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(cfg);
+    fbDb = firebase.database();
+    log('✅ Firebase conectat: ' + cfg.projectId, 'ok');
+    document.getElementById('step2').style.display = 'block';
+
+    // Test connection
+    fbDb.ref('.info/connected').once('value', function(snap) {
+      log(snap.val() ? '🟢 Firebase online' : '🟡 Firebase offline', snap.val() ? 'ok' : 'warn');
+    });
+  } catch(e) {
+    log('❌ Eroare conectare Firebase: ' + e.message, 'err');
+  }
+}
+
+function o2a(o) { return o ? (Array.isArray(o) ? o : Object.values(o)) : []; }
+
+function fixFb(obj) {
+  if (!obj || typeof obj !== "object") return obj;
+  if (Array.isArray(obj)) return obj.map(fixFb);
+  var keys = Object.keys(obj);
+  var isNum = keys.length > 0 && keys.every(function(k) { return String(parseInt(k)) === k; });
+  if (isNum) {
+    var arr = [];
+    keys.sort(function(a,b){return parseInt(a)-parseInt(b)}).forEach(function(k){arr.push(fixFb(obj[k]))});
+    return arr;
+  }
+  var r = {};
+  keys.forEach(function(k) { r[k] = fixFb(obj[k]); });
+  return r;
+}
+
+async function doImport() {
+  var btn = document.getElementById('btn-import');
+  btn.disabled = true;
+  btn.textContent = 'Se importă...';
+
+  try {
+    // Read from Firebase
+    log('📖 Citesc agenți din Firebase...', 'info');
+    var agSnap = await fbDb.ref('agents').once('value');
+    var agRaw = agSnap.val();
+    var agents = agRaw ? o2a(agRaw).map(fixFb) : [];
+    log('   Agenți găsiți: ' + agents.length, agents.length > 0 ? 'ok' : 'warn');
+
+    log('📖 Citesc clienți din Firebase...', 'info');
+    var clSnap = await fbDb.ref('clients').once('value');
+    var clRaw = clSnap.val();
+    var clients = clRaw ? o2a(clRaw).map(fixFb) : [];
+    log('   Clienți găsiți: ' + clients.length, clients.length > 0 ? 'ok' : 'warn');
+
+    log('📖 Citesc activități din Firebase...', 'info');
+    var acSnap = await fbDb.ref('activities').once('value');
+    var acRaw = acSnap.val();
+    var activities = acRaw ? o2a(acRaw).map(fixFb) : [];
+    log('   Activități găsite: ' + activities.length, activities.length > 0 ? 'ok' : 'warn');
+
+    log('📖 Citesc oferte din Firebase...', 'info');
+    var ofSnap = await fbDb.ref('offers').once('value');
+    var ofRaw = ofSnap.val();
+    var offers = ofRaw ? o2a(ofRaw).map(fixFb) : [];
+    log('   Oferte găsite: ' + offers.length, offers.length > 0 ? 'ok' : 'warn');
+
+    // Read admin password
+    var pwSnap = await fbDb.ref('admin_pass').once('value');
+    var adminPw = pwSnap.val();
+
+    // Filter out demo data
+    var isDemoAg = function(a) { return ["ag1","ag2","ag3","ag4","ag5"].includes(a.id); };
+    var isDemoCl = function(c) { return ["c1","c2","c3","c4","c5","c6","c7","c8","c9","c10"].includes(c.id); };
+    var isDemoAc = function(a) { return ["a1","a2","a3","a4","a5"].includes(a.id); };
+
+    var realAgents = agents.filter(function(a) { return !isDemoAg(a); });
+    var realClients = clients.filter(function(c) { return !isDemoCl(c); });
+    var realActivities = activities.filter(function(a) { return !isDemoAc(a); });
+
+    log('', 'info');
+    log('📊 Date reale (fără demo):', 'info');
+    log('   Agenți: ' + realAgents.length + ' (demo: ' + (agents.length - realAgents.length) + ')', 'info');
+    log('   Clienți: ' + realClients.length + ' (demo: ' + (clients.length - realClients.length) + ')', 'info');
+    log('   Activități: ' + realActivities.length + ' (demo: ' + (activities.length - realActivities.length) + ')', 'info');
+    log('   Oferte: ' + offers.length, 'info');
+    log('', 'info');
+
+    // Write to Supabase
+    var errors = 0;
+
+    if (realAgents.length > 0) {
+      log('📤 Import agenți în Supabase...', 'info');
+      for (var i = 0; i < realAgents.length; i++) {
+        var a = realAgents[i];
+        var dbRec = toDb(a);
+        // Ensure required fields
+        if (!dbRec.id) dbRec.id = 'm' + Date.now().toString(36) + Math.random().toString(36).substr(2,4);
+        if (!dbRec.name) { log('   ⚠️ Agent fără nume, skip', 'warn'); continue; }
+        var res = await sb.from('st_agents').upsert(dbRec);
+        if (res.error) { log('   ❌ Agent ' + a.name + ': ' + res.error.message, 'err'); errors++; }
+        else log('   ✅ ' + a.name, 'ok');
+      }
+    }
+
+    if (realClients.length > 0) {
+      log('📤 Import clienți în Supabase...', 'info');
+      for (var i = 0; i < realClients.length; i++) {
+        var c = realClients[i];
+        var dbRec = toDb(c);
+        if (!dbRec.id) dbRec.id = 'm' + Date.now().toString(36) + Math.random().toString(36).substr(2,4);
+        if (!dbRec.company) dbRec.company = dbRec.name || 'Necunoscut';
+        var res = await sb.from('st_clients').upsert(dbRec);
+        if (res.error) { log('   ❌ Client ' + (c.company||c.name) + ': ' + res.error.message, 'err'); errors++; }
+        else log('   ✅ ' + (c.company||c.name), 'ok');
+      }
+    }
+
+    if (realActivities.length > 0) {
+      log('📤 Import activități în Supabase...', 'info');
+      var batchSize = 50;
+      for (var i = 0; i < realActivities.length; i += batchSize) {
+        var batch = realActivities.slice(i, i + batchSize).map(function(a) {
+          var dbRec = toDb(a);
+          if (!dbRec.id) dbRec.id = 'm' + Date.now().toString(36) + Math.random().toString(36).substr(2,4);
+          return dbRec;
+        });
+        var res = await sb.from('st_activities').upsert(batch);
+        if (res.error) { log('   ❌ Batch activități: ' + res.error.message, 'err'); errors++; }
+        else log('   ✅ ' + batch.length + ' activități (batch ' + Math.floor(i/batchSize+1) + ')', 'ok');
+      }
+    }
+
+    if (offers.length > 0) {
+      log('📤 Import oferte în Supabase...', 'info');
+      for (var i = 0; i < offers.length; i++) {
+        var o = offers[i];
+        var dbRec = toDb(o);
+        if (!dbRec.id) dbRec.id = 'm' + Date.now().toString(36) + Math.random().toString(36).substr(2,4);
+        var res = await sb.from('st_offers').upsert(dbRec);
+        if (res.error) { log('   ❌ Ofertă: ' + res.error.message, 'err'); errors++; }
+        else log('   ✅ Ofertă ' + (i+1), 'ok');
+      }
+    }
+
+    if (adminPw && typeof adminPw === 'string') {
+      log('📤 Import parola admin...', 'info');
+      await sb.from('st_settings').upsert({key: 'admin_pass', value: adminPw});
+      log('   ✅ Parola admin importată', 'ok');
+    }
+
+    // Import PDF attachments
+    log('', 'info');
+    log('📖 Citesc atașamente PDF din Firebase...', 'info');
+    var pdfMetaSnap = await fbDb.ref('pdfs_meta').once('value');
+    var pdfMetaRaw = pdfMetaSnap.val();
+    var pdfMetas = [];
+    if (pdfMetaRaw) {
+      Object.keys(pdfMetaRaw).forEach(function(k) {
+        var m = pdfMetaRaw[k];
+        if (m) { m.id = m.id || k; pdfMetas.push(m); }
+      });
+    }
+    log('   Atașamente găsite: ' + pdfMetas.length, pdfMetas.length > 0 ? 'ok' : 'warn');
+
+    if (pdfMetas.length > 0) {
+      log('📤 Import atașamente PDF în Supabase...', 'info');
+      for (var i = 0; i < pdfMetas.length; i++) {
+        var pm = pdfMetas[i];
+        log('   📄 ' + (i+1) + '/' + pdfMetas.length + ' ' + (pm.fileName || pm.id) + '...', 'info');
+        try {
+          var dataSnap = await fbDb.ref('pdfs_data/' + pm.id).once('value');
+          var pdfData = dataSnap.val();
+          if (!pdfData) { log('      ⚠️ Fără date PDF, skip', 'warn'); continue; }
+          var dbRec = {
+            id: pm.id,
+            file_name: pm.fileName || 'document.pdf',
+            client_id: pm.clientId || null,
+            offer_id: pm.offerId || null,
+            agent_id: pm.uploadedBy || pm.agentId || null,
+            notes: pm.notes || '',
+            size: pm.size || 0,
+            mime_type: pm.type || 'application/pdf',
+            data: pdfData,
+            created_at: pm.timestamp || new Date().toISOString()
+          };
+          var res = await sb.from('st_attachments').upsert(dbRec);
+          if (res.error) { log('      ❌ ' + res.error.message, 'err'); errors++; }
+          else log('      ✅ ' + (pm.fileName || pm.id) + ' (' + Math.round((pm.size||0)/1024) + ' KB)', 'ok');
+        } catch(pe) {
+          log('      ❌ ' + pe.message, 'err'); errors++;
+        }
+      }
+    }
+
+    log('', 'info');
+    if (errors === 0) {
+      log('═══════════════════════════════════════', 'ok');
+      log('✅ IMPORT COMPLET! Fără erori.', 'ok');
+      log('   ' + realAgents.length + ' agenți', 'ok');
+      log('   ' + realClients.length + ' clienți', 'ok');
+      log('   ' + realActivities.length + ' activități', 'ok');
+      log('   ' + offers.length + ' oferte', 'ok');
+      log('   ' + pdfMetas.length + ' atașamente PDF', 'ok');
+      log('═══════════════════════════════════════', 'ok');
+      log('', 'info');
+      log('Deschide SalesTrack (index.html) — datele sunt acolo.', 'ok');
+    } else {
+      log('⚠️ Import terminat cu ' + errors + ' erori. Verifică mai sus.', 'warn');
+    }
+
+  } catch(e) {
+    log('❌ EROARE: ' + e.message, 'err');
+    console.error(e);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Importă din nou';
+}
+</script>
+</body>
+</html>

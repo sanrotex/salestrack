@@ -237,7 +237,7 @@ var SB_URL='https://peeehzlhdfzdyzekzdiu.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlZWVoemxoZGZ6ZHl6ZWt6ZGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDEyODgsImV4cCI6MjA5MTgxNzI4OH0.EzbX5FYEC9IWrJA7HVu2gHDDa7qZn59396u2cbKivxk';
 var sb=supabase.createClient(SB_URL,SB_KEY);
 
-var _CM={agent_id:'agentId',agent_id2:'agentId2',client_id:'clientId',last_contact:'lastContact',created_at:'createdAt',start_date:'startDate',valid_until:'validUntil'};
+var _CM={agent_id:'agentId',agent_id2:'agentId2',client_id:'clientId',last_contact:'lastContact',created_at:'createdAt',start_date:'startDate',valid_until:'validUntil',file_name:'fileName',offer_id:'offerId',mime_type:'mimeType'};
 var _PM={};for(var _k in _CM)_PM[_CM[_k]]=_k;
 function fromDb(r){if(!r)return r;var o={};for(var k in r)o[_CM[k]||k]=r[k];return o}
 function toDb(o){if(!o)return o;var r={};for(var k in o)r[_PM[k]||k]=o[k];return r}
@@ -301,6 +301,9 @@ const [oFD1,sOFD1]=useState("");const [oFD2,sOFD2]=useState("");
 const [oShowF,sOShowF]=useState(false);
 const moRef=React.useRef(null);
 const [cf,sCf]=useState(null);
+const [att,sAtt]=useState([]);
+const [pdfTgt,sPdfTgt]=useState(null);
+const pdfRef=useRef(null);
 const [sbRdy,sSbRdy]=useState(false);
 const [dsk,sDsk]=useState(()=>window.innerWidth>=900);
 useEffect(()=>{const h=()=>sDsk(window.innerWidth>=900);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h)},[]);
@@ -321,11 +324,12 @@ useEffect(()=>{
     sb.from('st_clients').select('*').then(r=>r.data||[]),
     sb.from('st_activities').select('*').then(r=>r.data||[]),
     sb.from('st_offers').select('*').then(r=>r.data||[]),
-    sb.from('st_settings').select('*').eq('key','admin_pass').then(r=>(r.data&&r.data[0])?r.data[0].value:'admin123')
-  ]).then(([rAg,rCl,rAc,rOf,rPw])=>{
+    sb.from('st_settings').select('*').eq('key','admin_pass').then(r=>(r.data&&r.data[0])?r.data[0].value:'admin123'),
+    sb.from('st_attachments').select('id,file_name,client_id,offer_id,agent_id,notes,size,mime_type,created_at').then(r=>r.data||[])
+  ]).then(([rAg,rCl,rAc,rOf,rPw,rAt])=>{
     sAg(rAg.map(fromDb));sCl(rCl.map(fromDb));sAc(rAc.map(fromDb));sOf(rOf.map(fromDb));
-    sAdmPass(rPw);sSbRdy(true);
-    console.log("✅ Supabase: "+rAg.length+" agenți, "+rCl.length+" clienți, "+rAc.length+" activități, "+rOf.length+" oferte");
+    sAtt(rAt.map(fromDb));sAdmPass(rPw);sSbRdy(true);
+    console.log("✅ Supabase: "+rAg.length+" agenți, "+rCl.length+" clienți, "+rAc.length+" activități, "+rOf.length+" oferte, "+rAt.length+" atașamente");
   }).catch(e=>{
     console.error("Supabase error:",e);
     alert("Eroare conectare Supabase: "+e.message);
@@ -392,6 +396,89 @@ const savAg=async(d,e)=>{if(!isAdm){show("⚠️ Doar admin");return;}const rec=
 const delAg=async id=>{if(!isAdm){show("⚠️ Doar admin");return;}const{error}=await sb.from('st_agents').delete().eq('id',id);if(error){show("❌ "+error.message);return;}sAg(p=>p.filter(a=>a.id!==id));const fallback=ag.find(a=>a.id!==id)?.id||null;await sb.from('st_clients').update({agent_id:fallback}).eq('agent_id',id);sCl(p=>p.map(c2=>c2.agentId===id?{...c2,agentId:fallback}:c2));show("🗑 Agent șters");sCf(null);sMd(null)};
 const getAdmP=()=>admPass;
 const setAdmP=async v=>{const{error}=await sb.from('st_settings').upsert({key:'admin_pass',value:v});if(!error)sAdmPass(v);};
+
+const getCAtt=cId=>att.filter(a=>a.clientId===cId).sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
+const handlePdf=async e=>{
+  const files=e.target.files;if(!files||!files.length||!pdfTgt)return;
+  for(const file of files){
+    if(!file.name.toLowerCase().endsWith(".pdf")&&file.type!=="application/pdf"){show("⚠️ Doar PDF: "+file.name);continue;}
+    const reader=new FileReader();
+    reader.onload=async ev=>{
+      const b64=ev.target.result;
+      const rec={id:uid(),fileName:file.name,clientId:pdfTgt.clientId,offerId:pdfTgt.offerId||null,agentId:pdfTgt.agentId||null,notes:pdfTgt.notes||"",size:file.size,mimeType:"application/pdf",createdAt:new Date().toISOString()};
+      const dbRec={...toDb(rec),data:b64};
+      const{error}=await sb.from('st_attachments').upsert(dbRec);
+      if(error){show("❌ "+error.message);return;}
+      sAtt(p=>[rec,...p]);show("✅ "+file.name+" atașat");
+    };reader.readAsDataURL(file);
+  }
+  if(pdfRef.current)pdfRef.current.value="";sPdfTgt(null);
+};
+const viewPdf=async a=>{
+  show("⏳ Se încarcă...");
+  const{data,error}=await sb.from('st_attachments').select('data').eq('id',a.id).single();
+  if(error||!data||!data.data){show("❌ PDF negăsit");return;}
+  const w=window.open("","_blank");
+  if(w){w.document.write('<html><head><title>'+a.fileName+'</title><style>body{margin:0;background:#111}</style></head><body><embed src="'+data.data+'" type="application/pdf" width="100%" height="100%" style="position:fixed;inset:0"/></body></html>');w.document.close();}
+};
+const downloadPdf=async a=>{
+  show("⏳ Se descarcă...");
+  const{data,error}=await sb.from('st_attachments').select('data').eq('id',a.id).single();
+  if(error||!data||!data.data){show("❌ PDF negăsit");return;}
+  const link=document.createElement("a");link.href=data.data;link.download=a.fileName;document.body.appendChild(link);link.click();document.body.removeChild(link);
+};
+const delAtt=async id=>{
+  const{error}=await sb.from('st_attachments').delete().eq('id',id);
+  if(error){show("❌ "+error.message);return;}
+  sAtt(p=>p.filter(a=>a.id!==id));show("🗑 Atașament șters");sCf(null);
+};
+
+const PdfModal=()=>{
+  if(!pdfTgt)return null;
+  const c=gC(pdfTgt.clientId);
+  const cAtts=getCAtt(pdfTgt.clientId);
+  const [note,sNote]=useState("");
+  const [linkOff,sLinkOff]=useState(pdfTgt.offerId||"");
+  const cOffs=of.filter(o=>o.clientId===pdfTgt.clientId);
+  return<div className="overlay" style={{alignItems:"center",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)sPdfTgt(null)}}>
+    <div className="sheet" style={{maxWidth:560,width:"92%",borderRadius:16,margin:"auto"}}>
+      <div className="sheet-t"><span>📎 Oferte PDF — {c?.company||"Client"}</span><button className="sheet-x" onClick={()=>sPdfTgt(null)}>✕</button></div>
+      <div style={{background:"var(--bg2)",borderRadius:10,padding:14,marginBottom:16,border:"1px solid var(--border)"}}>
+        <div style={{fontSize:13,fontWeight:700,marginBottom:10}}>📤 Încarcă ofertă PDF</div>
+        {cOffs.length>0&&<div style={{marginBottom:8}}>
+          <label className="fl">Leagă de ofertă (opțional)</label>
+          <select style={{fontSize:12,padding:"6px 8px"}} value={linkOff} onChange={e=>sLinkOff(e.target.value)}>
+            <option value="">— Fără —</option>
+            {cOffs.map(o=><option key={o.id} value={o.id}>{fmtD(o.date)} · {o.status} · {fmt(oTotal(o))}</option>)}
+          </select>
+        </div>}
+        <div style={{marginBottom:8}}>
+          <label className="fl">Notă (opțional)</label>
+          <input value={note} onChange={e=>sNote(e.target.value)} placeholder="Ex: Ofertă finală v2" style={{fontSize:12,padding:"6px 8px"}}/>
+        </div>
+        <button className="btn btn-s btn-p" onClick={()=>{sPdfTgt(p=>({...p,offerId:linkOff,notes:note}));setTimeout(()=>pdfRef.current?.click(),50)}}>📎 Alege fișier PDF</button>
+      </div>
+      <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>📎 Atașamente ({cAtts.length})</div>
+      {cAtts.length===0&&<div style={{padding:20,textAlign:"center",color:"var(--dim)",fontSize:13}}>Niciun PDF atașat încă</div>}
+      {cAtts.map(a=>{const ag2=gA(a.agentId);const off=a.offerId?of.find(o=>o.id===a.offerId):null;
+        return<div key={a.id} style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:10,padding:12,marginBottom:8}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:20}}>📄</span>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{a.fileName}</div>
+              <div style={{fontSize:11,color:"var(--dim)"}}>{a.size?Math.round(a.size/1024)+" KB":""}{ag2?" · "+ag2.name:""}{a.notes?" · "+a.notes:""}</div>
+              {off&&<div style={{fontSize:10,color:"#06b6d4"}}>🔗 Ofertă {fmtD(off.date)} · {off.status}</div>}
+            </div>
+            <div style={{display:"flex",gap:4}}>
+              <button className="btn btn-s btn-g" style={{padding:"4px 8px",fontSize:11}} onClick={()=>viewPdf(a)} title="Vizualizează">👁</button>
+              <button className="btn btn-s btn-g" style={{padding:"4px 8px",fontSize:11}} onClick={()=>downloadPdf(a)} title="Descarcă">⬇️</button>
+              {isAdm&&<button className="btn btn-s btn-g" style={{padding:"4px 8px",fontSize:11,color:"#ef4444"}} onClick={()=>sCf({msg:"Ștergi "+a.fileName+"?",ok:()=>delAtt(a.id)})} title="Șterge">🗑</button>}
+            </div>
+          </div>
+        </div>})}
+    </div>
+  </div>;
+};
 
 const stats=useMemo(()=>{
   const mA=isAgt?ac.filter(a=>a.agentId===myAId):ac;
@@ -540,7 +627,7 @@ const Offers=()=>{
       <div style={{flex:1}}/>
       <span className="M" style={{fontSize:13,fontWeight:700,color:"#10b981"}}>{fmt(totV)}</span>
     </div>
-    {dsk?<div className="tbl-wrap"><table className="tbl"><thead><tr><th>Client</th><th>Agent</th><th>Status</th><th>Produse</th><th>Data</th><th>Valabil până</th><th>Valoare</th></tr></thead>
+    {dsk?<div className="tbl-wrap"><table className="tbl"><thead><tr><th>Client</th><th>Agent</th><th>Status</th><th>Produse</th><th>Data</th><th>Valabil până</th><th>Valoare</th><th>📎</th></tr></thead>
     <tbody>{fl.map(o=>{const cc=gC(o.clientId);const gg=gA(o.agentId);const tot=oTotal(o);const exp=o.status==="trimis"&&o.validUntil&&o.validUntil<td;
     return<tr key={o.id} style={{cursor:"pointer",borderLeft:o.status==="acceptat"?"3px solid #10b981":o.status==="respins"?"3px solid #ef4444":o.status==="trimis"?"3px solid #06b6d4":"3px solid #64748b"}} onClick={()=>sMd({t:"eo",d:o})}>
       <td><div style={{fontWeight:600,fontSize:13}}>{cc?.company||"—"}</div><div style={{fontSize:11,color:"#64748b"}}>{cc?.name||""}</div></td>
@@ -550,6 +637,7 @@ const Offers=()=>{
       <td className="M" style={{fontSize:11,color:"#94a3b8"}}>{fmtD(o.date||"")}</td>
       <td className="M" style={{fontSize:11,color:exp?"#f87171":"#94a3b8"}}>{fmtD(o.validUntil||"")}</td>
       <td className="M" style={{fontWeight:600,color:"#10b981"}}>{fmt(tot)}</td>
+      <td onClick={e=>e.stopPropagation()}><button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:11}} onClick={()=>sPdfTgt({clientId:o.clientId,offerId:o.id,agentId:isAgt?myAId:o.agentId})} title="Atașează PDF ofertă">📎{(()=>{const n=att.filter(a=>a.offerId===o.id).length;return n>0?<span className="M" style={{fontSize:10,marginLeft:2,color:"#f87171"}}>{n}</span>:null})()}</button></td>
     </tr>})}</tbody></table>
     {fl.length===0&&<div style={{padding:40,textAlign:"center",color:"#475569"}}>Nicio ofertă</div>}
     </div>
@@ -619,7 +707,7 @@ const Clients=()=>{
       <select style={{fontSize:11,padding:"5px 8px",flex:1}} value={srt} onChange={e=>sSrt(e.target.value)}><option value="company">Nume ↑</option><option value="value">Valoare ↓</option><option value="date">Dată ↓</option></select>
       <span style={{fontSize:11,color:"var(--dim)",alignSelf:"center"}}>{fl.length}</span>
     </div>}
-    {dsk?<div className="tbl-wrap"><table className="tbl"><thead><tr><th>Client</th><th>CUI</th><th>Etapă</th><th>Agent</th><th>Valoare</th><th>Sursă</th><th>Ultimul Contact</th></tr></thead>
+    {dsk?<div className="tbl-wrap"><table className="tbl"><thead><tr><th>Client</th><th>CUI</th><th>Etapă</th><th>Agent</th><th>Valoare</th><th>Sursă</th><th>Ultimul Contact</th><th>📎</th></tr></thead>
     <tbody>{fl.map(c=>{const g=gA(c.agentId);const s=sI(c.stage);
       const d2x=new Date(new Date(td).getTime()+2*86400000).toISOString().split("T")[0];
       const soon=ac.some(a=>a.clientId===c.id&&(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td&&a.date<=d2x);
@@ -633,6 +721,7 @@ const Clients=()=>{
         <td style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,color:"#10b981"}}>{fmt(c.value)}</td>
         <td style={{fontSize:12,color:"#64748b"}}>{c.source||"—"}</td>
         <td style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:stale?"#f87171":"#64748b"}}>{fmtD(c.lastContact)}{stale?" ⚠️":""}</td>
+        <td onClick={e=>e.stopPropagation()}><button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:11}} onClick={()=>sPdfTgt({clientId:c.id,agentId:isAgt?myAId:c.agentId})} title="Atașează PDF">📎{(()=>{const n=getCAtt(c.id).length;return n>0?<span className="M" style={{fontSize:10,marginLeft:2,color:"#f87171"}}>{n}</span>:null})()}</button></td>
       </tr>})}</tbody></table>
     {fl.length===0&&<div style={{padding:40,textAlign:"center",color:"#475569"}}>Niciun client</div>}
     </div>
@@ -970,6 +1059,7 @@ const CDet=({c})=>{
       {ph&&<a href={"tel:"+ph} className="ab" style={{color:"var(--green)"}}><span style={{fontSize:20}}>📞</span>Sună</a>}
       <div className="ab" onClick={()=>sMd({t:"na",d:{clientId:c.id,agentId:c.agentId||"",type:"vizita",date:td,time:nwT(),duration:60,status:"planificat",result:"",notes:""}})}><span style={{fontSize:20}}>📅</span>Vizită</div>
       <div className="ab" onClick={()=>sMd({t:"no",d:{clientId:c.id,agentId:isAgt?myAId:c.agentId||"",status:"draft",validUntil:"",items:[{desc:"",qty:1,price:0}],discount:0,notes:""}})}><span style={{fontSize:20}}>📄</span>Ofertă</div>
+      <div className="ab" onClick={()=>{sMd(null);setTimeout(()=>sPdfTgt({clientId:c.id,agentId:isAgt?myAId:c.agentId}),100)}}><span style={{fontSize:20}}>📎</span>PDF ({getCAtt(c.id).length})</div>
       {(isAdm||c.agentId===myAId||!c.agentId)&&<div className="ab" onClick={()=>sMd({t:"ec",d:c})}><span style={{fontSize:20}}>✏️</span>Editează</div>}
       {isAdm&&<div className="ab" style={{color:"var(--red)"}} onClick={()=>sCf({msg:"Ștergi "+c.company+"?",ok:()=>delC(c.id)})}><span style={{fontSize:20}}>🗑</span>Șterge</div>}
     </div>
@@ -984,6 +1074,15 @@ const CDet=({c})=>{
         <div className="M" style={{fontSize:13,fontWeight:700,color:"#10b981"}}>{fmt(oTotal(o))}</div>
       </div>)}
     </div>}
+    {(()=>{const cPdf=getCAtt(c.id);return cPdf.length>0&&<div style={{marginBottom:14}}>
+      <div className="stitle">📎 PDF-uri atașate ({cPdf.length})</div>
+      {cPdf.map(a=>{const off=a.offerId?of.find(o=>o.id===a.offerId):null;return<div key={a.id} style={{display:"flex",gap:8,padding:"8px 12px",marginBottom:4,background:"var(--bg2)",borderRadius:8,border:"1px solid var(--border)",alignItems:"center"}}>
+        <span>📄</span>
+        <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{a.fileName}</div><div style={{fontSize:10,color:"var(--dim)"}}>{a.size?Math.round(a.size/1024)+" KB":""}{a.notes?" · "+a.notes:""}{off?" · 🔗 "+off.status:""}</div></div>
+        <button className="btn btn-s btn-g" style={{padding:"3px 6px",fontSize:10}} onClick={()=>viewPdf(a)}>👁</button>
+        <button className="btn btn-s btn-g" style={{padding:"3px 6px",fontSize:10}} onClick={()=>downloadPdf(a)}>⬇️</button>
+      </div>})}
+    </div>})()}
     {ca.length>0&&<div style={{marginBottom:14}}>
       <div className="stitle">📅 Activități ({ca.length})</div>
       {(()=>{
@@ -1073,6 +1172,8 @@ return<div className="app">
     </div>}
   </div>
   {renderMd()}
+  <PdfModal/>
+  <input ref={pdfRef} type="file" accept=".pdf" multiple style={{display:"none"}} onChange={handlePdf}/>
   {cf&&<div className="cfrm"><div className="cbox"><div style={{fontSize:24}}>⚠️</div><p>{cf.msg}</p><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn btn-g" onClick={()=>sCf(null)}>Nu</button><button className="btn btn-d" onClick={cf.ok}>Da</button></div></div></div>}
   {ts&&<div className="toast">{ts}</div>}
 </div>;
