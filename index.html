@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#06080d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SalesTrack">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<title>SalesTrack CRM</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#06080d;--bg2:#0c1017;--card:#111520;--border:#1c2333;--text:#e2e8f0;--muted:#64748b;--dim:#475569;--accent:#6366f1;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px)}
+html,body,#root{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overscroll-behavior:none}
+input,select,textarea{font-family:inherit;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px 14px;font-size:14px;outline:none;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:50px}
+button{font-family:inherit;cursor:pointer;border:none}
+button:active{transform:scale(0.96)}
+.M{font-family:'JetBrains Mono',monospace}
+.app{height:100%;display:flex;flex-direction:column}
+.hdr{padding:12px 16px;padding-top:max(12px,var(--st));background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px}
+.nav{display:flex;background:var(--bg2);border-top:1px solid var(--border);padding-bottom:var(--sb);flex-shrink:0}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;font-size:10px;color:var(--dim);gap:2px}
+.ni.on{color:#818cf8}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.kpi b{font-size:22px;font-weight:800;display:block}
+.kpi small{font-size:11px;color:var(--muted);display:block;margin-top:2px}
+.li{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:center}
+.li:active{background:#161c28}
+.av{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0}
+.li-b{flex:1;min-width:0;overflow:hidden}
+.li-t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-s{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-r{text-align:right;flex-shrink:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600}
+.bg{background:rgba(100,116,139,.12);color:#94a3b8}.bp{background:rgba(168,85,247,.12);color:#c084fc}
+.by{background:rgba(245,158,11,.12);color:#fbbf24}.bc{background:rgba(6,182,212,.12);color:#22d3ee}
+.bgr{background:rgba(16,185,129,.12);color:#34d399}.br{background:rgba(239,68,68,.12);color:#f87171}
+.bb{background:rgba(99,102,241,.12);color:#a5b4fc}
+.btn{padding:10px 18px;border-radius:10px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;justify-content:center}
+.btn-f{width:100%}.btn-s{padding:8px 14px;font-size:13px;border-radius:8px}
+.btn-p{background:var(--accent);color:white}.btn-ok{background:var(--green);color:white}
+.btn-d{background:var(--red);color:white}.btn-g{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.fab{position:fixed;bottom:calc(70px + var(--sb));right:16px;width:56px;height:56px;border-radius:16px;background:var(--accent);color:white;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(99,102,241,.4);z-index:20}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:flex;align-items:flex-end}
+.sheet{background:var(--card);border-top-left-radius:20px;border-top-right-radius:20px;width:100%;max-height:90vh;overflow-y:auto;padding:20px 16px;padding-bottom:calc(20px + var(--sb));animation:up .25s}
+.sheet-t{font-size:17px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.fg{display:flex;flex-direction:column;gap:10px}
+.fi{display:flex;flex-direction:column;gap:4px}
+.fl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.dc{background:var(--bg2);border-radius:10px;padding:10px 12px}
+.acts{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.ab{flex:1;min-width:70px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--muted);text-decoration:none}
+.ab:active{border-color:var(--accent)}
+.tabs{display:flex;background:var(--card);border-radius:10px;padding:3px;border:1px solid var(--border);margin-bottom:12px;overflow-x:auto}
+.tab{flex:1;text-align:center;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap}
+.tab.on{background:var(--accent);color:white;font-weight:600}
+.srch{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:14px;color:var(--text);width:100%;margin-bottom:12px}
+.empty{padding:30px;text-align:center;color:var(--dim);font-size:13px}
+.toast{position:fixed;top:max(16px,var(--st));left:16px;right:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:13px;z-index:100;box-shadow:0 8px 30px rgba(0,0,0,.5);text-align:center;animation:up .25s}
+.hdr-title{display:none}.hdr-uname{display:none}.hdr-search{display:none}
+.stitle{font-size:13px;font-weight:700;margin:14px 0 8px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cfrm{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}
+.cbox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:340px;text-align:center}
+.cbox p{margin:10px 0 18px;color:var(--muted);font-size:13px}
+@keyframes up{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ DESKTOP ═══ */
+@media(min-width:900px){
+  html,body,#root{overflow:hidden}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#252d40;border-radius:3px}
+
+  .app{display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto 1fr;height:100vh;overflow:hidden}
+
+  /* ── Sidebar ── */
+  .nav{
+    grid-column:1;grid-row:1/-1;
+    position:static;flex-direction:column;
+    background:var(--bg2);border-top:none;border-right:1px solid var(--border);
+    padding:0;overflow-y:auto;gap:0
+  }
+  .nav::before,.nav::after{display:none}
+  .ni{
+    flex-direction:row;justify-content:flex-start;
+    padding:10px 14px;margin:1px 10px;gap:11px;
+    font-size:13px;font-weight:500;color:var(--dim);
+    border-radius:10px;transition:all .15s
+  }
+  .ni:hover{background:rgba(99,102,241,.06);color:var(--text)}
+  .ni.on{background:rgba(99,102,241,.1);color:#818cf8;font-weight:600}
+  .ni-i{font-size:17px;width:22px;text-align:center;display:inline}
+
+  /* ── Topbar ── */
+  .hdr{
+    grid-column:2;grid-row:1;
+    padding:14px 24px;border-bottom:1px solid var(--border);
+    background:var(--bg2);
+    display:flex;align-items:center;gap:16px
+  }
+  .hdr-title{display:block!important}
+  .hdr-search{width:280px;flex-shrink:0}
+  .hdr-uname{display:block}
+
+  /* ── Content ── */
+  .body{
+    grid-column:2;grid-row:2;
+    padding:20px 24px;overflow-y:auto;
+    scroll-behavior:smooth
+  }
+
+  /* ── FAB ── */
+  .fab{bottom:28px;right:28px;width:52px;height:52px;border-radius:14px;font-size:22px;box-shadow:0 6px 24px rgba(99,102,241,.35)}
+
+  /* ── Modal ── */
+  .overlay{align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+  .sheet{
+    border-radius:16px;max-width:580px;width:92%;margin:auto;
+    max-height:88vh;padding:24px;
+    border-top-left-radius:16px;border-top-right-radius:16px;
+    animation:dkModal .25s;border:1px solid var(--border)
+  }
+  .sheet-t{font-size:17px;margin-bottom:18px}
+  @keyframes dkModal{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ── KPIs ── */
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+  .kpi{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:border .2s;position:relative}
+  .kpi:hover{border-color:#252d40}
+  .kpi b{font-size:26px}
+  .kpi small{font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+
+  /* ── List items ── */
+  .li{padding:14px 18px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;transition:all .15s}
+  .li:hover{border-color:rgba(99,102,241,.3);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+  .li-t{font-size:14px}
+  .li-s{font-size:12px}
+
+  /* ── Search ── */
+  .srch{max-width:320px;background:var(--card);border:1px solid var(--border);padding-left:36px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%23475569' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:12px center}
+
+  /* ── Tabs ── */
+  .tabs{width:fit-content;border:1px solid var(--border)}
+  .tab{padding:7px 16px;font-size:12px;cursor:pointer;transition:all .15s}
+  .tab.on{font-weight:600}
+
+  /* ── Forms ── */
+  .fg{max-width:550px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .fi{display:flex;flex-direction:column;gap:4px}
+  .fr{max-width:550px}
+  input,select,textarea{border-radius:8px;padding:10px 14px;font-size:13px;transition:border .2s}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+
+  /* ── Toast ── */
+  .toast{left:auto;right:24px;top:20px;max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+
+  /* ── Buttons on desktop ── */
+  .btn{transition:all .15s}
+  .btn:hover{filter:brightness(1.1)}
+
+  /* ── Misc ── */
+  .stitle{font-size:14px;font-weight:700;margin:18px 0 10px}
+  .empty{padding:40px;font-size:14px}
+  .acts{gap:10px}
+  .ab{min-width:90px;border-radius:10px;padding:12px 10px;transition:all .15s}
+  .ab:hover{border-color:var(--accent);background:rgba(99,102,241,.05)}
+  .dg{grid-template-columns:repeat(3,1fr);gap:10px}
+  .dc{border-radius:10px;padding:12px 14px}
+  .mob-search{display:none}
+
+  /* ── Tables ── */
+  .tbl{width:100%;border-collapse:collapse}
+  .tbl th{text-align:left;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;border-bottom:1px solid var(--border);font-weight:600;white-space:nowrap}
+  .tbl td{padding:11px 14px;border-bottom:1px solid rgba(28,35,51,.5);font-size:13px;vertical-align:middle}
+  .tbl tr:hover td{background:rgba(99,102,241,.03)}
+  .tbl .av{width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;margin-right:10px;vertical-align:middle;flex-shrink:0}
+  .tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius,12px);padding:0;overflow:auto}
+
+  /* ── Pipeline kanban ── */
+  .pipeline{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px}
+  .pipe-col{min-width:220px;flex:1;background:var(--bg2);border-radius:12px;border:1px solid var(--border);display:flex;flex-direction:column;max-height:calc(100vh - 200px)}
+  .pipe-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .pipe-title{font-size:13px;font-weight:700}.pipe-count{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .pipe-body{flex:1;overflow-y:auto;padding:10px}
+  .pipe-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+  .pipe-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+
+  /* ── Sidebar user section ── */
+  .side-user{display:flex;align-items:center;gap:8px;padding:14px;border-top:1px solid var(--border);margin-top:auto}
+  .side-user-av{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:700;flex-shrink:0}
+  .side-user-info{flex:1;min-width:0;overflow:hidden}
+  .side-user-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .side-user-role{font-size:10px;color:var(--dim)}
+}
+
+@media(min-width:1200px){
+  .app{grid-template-columns:240px 1fr}
+  .body{padding:24px 32px}
+  .kpis{grid-template-columns:repeat(5,1fr)}
+  .dg{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+</head>
+<body>
+<div id="root"></div>
+<div id="errbox" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#0d0f14;color:#f87171;padding:30px 16px;font-size:12px;font-family:monospace;z-index:99999;overflow-y:auto;white-space:pre-wrap;line-height:1.8"></div>
+<script>
+var _errs=[];
+function showErr(msg){_errs.push(msg);var b=document.getElementById("errbox");if(b){b.style.display="block";b.textContent="ERORI:\n\n"+_errs.join("\n\n");}}
+window.onerror=function(msg,src,line){showErr(msg+" (linia "+line)};
+var _oe=console.error;
+console.error=function(){var a=Array.prototype.slice.call(arguments);var m=a.map(function(x){return typeof x==="string"?x:x&&x.message?x.message:String(x)}).join(" ");if(m.indexOf("Warning")===-1&&m.length>10)showErr("ERR: "+m.substring(0,400));_oe.apply(console,arguments);};
+setTimeout(function(){var r=document.getElementById("root");if(r&&(!r.innerHTML||r.innerHTML.length<10)){showErr("React nu a randat. Babel probabil a esuat.");}},5000);
+</script>
+<script>
+var SB_URL='https://peeehzlhdfzdyzekzdiu.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBlZWVoemxoZGZ6ZHl6ZWt6ZGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDEyODgsImV4cCI6MjA5MTgxNzI4OH0.EzbX5FYEC9IWrJA7HVu2gHDDa7qZn59396u2cbKivxk';
+var sb=supabase.createClient(SB_URL,SB_KEY);
+
+var _CM={agent_id:'agentId',agent_id2:'agentId2',client_id:'clientId',last_contact:'lastContact',created_at:'createdAt',start_date:'startDate',valid_until:'validUntil'};
+var _PM={};for(var _k in _CM)_PM[_CM[_k]]=_k;
+function fromDb(r){if(!r)return r;var o={};for(var k in r)o[_CM[k]||k]=r[k];return o}
+function toDb(o){if(!o)return o;var r={};for(var k in o)r[_PM[k]||k]=o[k];return r}
+
+const nwT=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
+const fmtTs=iso=>{if(!iso)return'';try{const d=new Date(iso);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}catch(e){return''}};
+</script>
+<script type="text/babel">
+const {useState,useMemo,useEffect,useCallback,useRef}=React;
+const fmt=v=>new Intl.NumberFormat("ro-RO",{style:"currency",currency:"RON",minimumFractionDigits:0}).format(v);
+const fmtD=d=>{if(!d)return"—";const p=d.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:"—";};
+const iso2dm=d=>{if(!d)return"";const p=d.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:"";};
+const dm2iso=v=>{if(!v)return"";const p=v.replace(/[.\-]/g,"/").split("/");return p.length===3&&p[2].length===4?p[2]+"-"+p[1].padStart(2,"0")+"-"+p[0].padStart(2,"0"):"";};
+const td=new Date().toISOString().split("T")[0];
+const uid=()=>"m"+Date.now().toString(36)+Math.random().toString(36).substr(2,4);
+const mkA=n=>n?n.split(" ").map(w=>w[0]).join("").substring(0,2).toUpperCase():"??";
+const ST=[{id:"lead",l:"Lead",i:"🎯",b:"bg"},{id:"prospect",l:"Prospect",i:"🔍",b:"bp"},{id:"negociere",l:"Negociere",i:"🤝",b:"by"},{id:"oferta",l:"Ofertă",i:"📄",b:"bc"},{id:"castigat",l:"Câștigat",i:"✅",b:"bgr"},{id:"pierdut",l:"Pierdut",i:"❌",b:"br"}];
+const LUNI=["Ian","Feb","Mar","Apr","Mai","Iun","Iul","Aug","Sep","Oct","Nov","Dec"];
+const TY=[{id:"vizita",i:"🚗",l:"Vizită"},{id:"telefon",i:"📞",l:"Telefon"},{id:"email",i:"📧",l:"Email"},{id:"meeting",i:"🤝",l:"Meeting"},{id:"contract",i:"📝",l:"Contract"}];
+const tI=t=>(TY.find(x=>x.id===t)||TY[0]).i;
+const sI=s=>ST.find(x=>x.id===s)||ST[0];
+const gSess=()=>{try{return JSON.parse(sessionStorage.getItem("stcrm_session"))}catch(e){return null}};
+const sSess=u=>sessionStorage.setItem("stcrm_session",JSON.stringify(u));
+const cSess=()=>sessionStorage.removeItem("stcrm_session");
+
+class ErrorBoundary extends React.Component{
+  constructor(props){super(props);this.state={err:null,info:null}}
+  static getDerivedStateFromError(e){return{err:e}}
+  componentDidCatch(e,info){this.setState({info:info})}
+  render(){
+    if(this.state.err)return React.createElement("div",{style:{padding:30,color:"#f87171",fontFamily:"monospace",fontSize:11,lineHeight:2,background:"#0d0f14",minHeight:"100vh",whiteSpace:"pre-wrap"}},
+      "EROARE RENDER:\n\n"+this.state.err.message+"\n\n"+(this.state.info&&this.state.info.componentStack?this.state.info.componentStack.substring(0,300):""));
+    return this.props.children
+  }
+}
+
+function App(){
+const [pg,sPg]=useState("home");
+const [ag,sAg]=useState([]);
+const [cl,sCl]=useState([]);
+const [ac,sAc]=useState([]);
+const [of,sOf]=useState([]);
+const [sr,sSr]=useState("");
+const [ts,sTs]=useState(null);
+const [md,sMd]=useState(null);
+const [aTab,sATab]=useState("upcoming");
+const [aShowF,sAShowF]=useState(false);
+const [aFAg,sAFAg]=useState("all");
+const [aFCl,sAFCl]=useState("all");
+const [aFSt,sAFSt]=useState("all");
+const [aFTy,sAFTy]=useState("all");
+const [aFD1,sAFD1]=useState("");const [aFD2,sAFD2]=useState("");
+const [aFI1,sAFI1]=useState("");const [aFI2,sAFI2]=useState("");
+const [cTab,sCTab]=useState("all");
+const [cFAgt,sCFAgt]=useState("all");
+const [cSrt,sCSrt]=useState("company");
+const [oFSt,sOFSt]=useState("all");
+const [oFAg,sOFAg]=useState("all");
+const [oFCl,sOFCl]=useState("all");
+const [oFD1,sOFD1]=useState("");const [oFD2,sOFD2]=useState("");
+const [oShowF,sOShowF]=useState(false);
+const moRef=React.useRef(null);
+const [cf,sCf]=useState(null);
+const [sbRdy,sSbRdy]=useState(false);
+const [dsk,sDsk]=useState(()=>window.innerWidth>=900);
+useEffect(()=>{const h=()=>sDsk(window.innerWidth>=900);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h)},[]);
+const [curUser,setCurUser]=useState(()=>gSess());
+const [admPass,sAdmPass]=useState("admin123");
+const isAdm=curUser&&curUser.role==="admin";
+const isAgt=curUser&&curUser.role==="agent";
+const myAId=isAgt?curUser.agentId:null;
+const tt=useRef(null);
+
+const show=useCallback(m=>{if(tt.current)clearTimeout(tt.current);sTs(m);tt.current=setTimeout(()=>sTs(null),2200)},[]);
+const gC=id=>cl.find(c=>c.id===id);
+const gA=id=>ag.find(a=>a.id===id);
+
+useEffect(()=>{
+  Promise.all([
+    sb.from('st_agents').select('*').then(r=>r.data||[]),
+    sb.from('st_clients').select('*').then(r=>r.data||[]),
+    sb.from('st_activities').select('*').then(r=>r.data||[]),
+    sb.from('st_offers').select('*').then(r=>r.data||[]),
+    sb.from('st_settings').select('*').eq('key','admin_pass').then(r=>(r.data&&r.data[0])?r.data[0].value:'admin123')
+  ]).then(([rAg,rCl,rAc,rOf,rPw])=>{
+    sAg(rAg.map(fromDb));sCl(rCl.map(fromDb));sAc(rAc.map(fromDb));sOf(rOf.map(fromDb));
+    sAdmPass(rPw);sSbRdy(true);
+    console.log("✅ Supabase: "+rAg.length+" agenți, "+rCl.length+" clienți, "+rAc.length+" activități, "+rOf.length+" oferte");
+  }).catch(e=>{
+    console.error("Supabase error:",e);
+    alert("Eroare conectare Supabase: "+e.message);
+    sSbRdy(true);
+  });
+},[]);
+
+const MobLoading=()=><div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100vh",background:"var(--bg)",padding:30}}>
+    <div style={{fontSize:28,marginBottom:16}}>{"⏳"}</div>
+    <div style={{fontSize:15,fontWeight:700,color:"var(--text)",marginBottom:12}}>Se descarcă datele...</div>
+    <div style={{fontSize:12,color:"var(--muted)"}}>Conectare la Supabase...</div>
+  </div>;
+
+const doMLogin=(u,p)=>{
+  if(u.toLowerCase()==="admin"){if(p===admPass){const s={role:"admin",name:"Administrator"};sSess(s);setCurUser(s);return true;}return false;}
+  const a=ag.find(x=>x.name.toLowerCase()===u.toLowerCase()||x.email&&x.email.toLowerCase()===u.toLowerCase());
+  if(!a||!a.password)return false;
+  if(p!==a.password)return false;
+  const s={role:"agent",agentId:a.id,name:a.name};sSess(s);setCurUser(s);return true;
+};
+const doMLogout=()=>{cSess();setCurUser(null)};
+
+const MobLogin=()=>{
+  const [lu,sLu]=useState("");const [lp,sLp]=useState("");const [le,sLe]=useState("");
+  const go=()=>{if(!lu.trim()||!lp.trim()){sLe("Completează ambele câmpuri");return;}if(doMLogin(lu.trim(),lp.trim()))sLe("");else sLe("Utilizator sau parolă incorectă");};
+  return<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:"var(--bg)",padding:20}}>
+    <div style={{background:"var(--card)",borderRadius:16,padding:30,width:"100%",maxWidth:340,border:"1px solid var(--border)"}}>
+      <div style={{textAlign:"center",marginBottom:24}}>
+        <div style={{width:56,height:56,borderRadius:14,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:24,color:"white",fontWeight:700,marginBottom:10}}>S</div>
+        <div style={{fontSize:20,fontWeight:800,color:"var(--text)"}}>SalesTrack</div>
+        <div style={{fontSize:12,color:"var(--dim)"}}>Autentificare</div>
+      </div>
+      <div style={{marginBottom:12}}>
+        <label style={{fontSize:11,color:"var(--muted)",display:"block",marginBottom:3}}>Utilizator</label>
+        <input value={lu} onChange={e=>{sLu(e.target.value);sLe("")}} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="admin / nume agent" style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1px solid var(--border)",background:"var(--bg)",color:"var(--text)",fontSize:14}}/>
+      </div>
+      <div style={{marginBottom:16}}>
+        <label style={{fontSize:11,color:"var(--muted)",display:"block",marginBottom:3}}>Parolă</label>
+        <input type="password" value={lp} onChange={e=>{sLp(e.target.value);sLe("")}} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="Parola" style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1px solid var(--border)",background:"var(--bg)",color:"var(--text)",fontSize:14}}/>
+      </div>
+      {le&&<div style={{background:"rgba(239,68,68,.1)",borderRadius:8,padding:"6px 10px",marginBottom:12,fontSize:12,color:"#f87171"}}>{le}</div>}
+      <button onClick={go} style={{width:"100%",padding:"12px",borderRadius:10,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",color:"white",fontSize:15,fontWeight:700,border:"none"}}>Intră</button>
+    </div>
+  </div>;
+};
+
+const DateIn=({value,onChange,style:st})=>{
+  const ref=React.useRef(null);
+  const [txt,sTxt]=useState(iso2dm(value));
+  React.useEffect(()=>{sTxt(iso2dm(value))},[value]);
+  const onCh=e=>{const v=e.target.value;sTxt(v);const iso=dm2iso(v);if(iso)onChange(iso)};
+  const onBl=()=>{const iso=dm2iso(txt);if(iso){sTxt(iso2dm(iso));onChange(iso)}else if(!txt){onChange("")}};
+  return<input ref={ref} type="text" inputMode="numeric" placeholder="zz/ll/aaaa" value={txt} onChange={onCh} onBlur={onBl} maxLength={10} style={{...st}}/>;
+};
+const savC=async(d,e)=>{const rec=e?d:{...d,id:uid(),createdAt:td,lastContact:td};const{error}=await sb.from('st_clients').upsert(toDb(rec));if(error){show("❌ "+error.message);return;}if(e)sCl(p=>p.map(c=>c.id===rec.id?rec:c));else sCl(p=>[rec,...p]);show(e?"✅ Salvat":"✅ Adăugat");sMd(null)};
+const delC=async id=>{const{error}=await sb.from('st_clients').delete().eq('id',id);if(error){show("❌ "+error.message);return;}sCl(p=>p.filter(c=>c.id!==id));const{error:e2}=await sb.from('st_activities').delete().eq('client_id',id);sAc(p=>p.filter(a=>a.clientId!==id));show("🗑 Șters");sCf(null);sMd(null)};
+const mvS=async(id,s)=>{const{error}=await sb.from('st_clients').update({stage:s}).eq('id',id);if(error){show("❌ "+error.message);return;}sCl(p=>p.map(c=>c.id===id?{...c,stage:s}:c));show("→ "+sI(s).l)};
+const savA=async(d,e)=>{const rec=e?d:{...d,id:uid(),createdAt:new Date().toISOString()};const{error}=await sb.from('st_activities').upsert(toDb(rec));if(error){show("❌ "+error.message);return;}if(e)sAc(p=>p.map(a=>a.id===rec.id?rec:a));else sAc(p=>[rec,...p]);if(rec.status==="finalizat"&&rec.clientId){await sb.from('st_clients').update({last_contact:rec.date}).eq('id',rec.clientId);sCl(p=>p.map(c=>c.id===rec.clientId?{...c,lastContact:rec.date}:c));}show(e?"✅ Salvat":"✅ Adăugat");sMd(null)};
+const finA=a=>savA({...a,status:"finalizat",result:a.result||"neutru"},true);
+const oTotal=o=>{const sub=(o.items||[]).reduce((s,it)=>s+(it.qty||1)*(it.price||0),0);return sub*(1-(o.discount||0)/100);};
+const savO=async(d,e)=>{const rec=e?d:{...d,id:uid(),date:td};const{error}=await sb.from('st_offers').upsert(toDb(rec));if(error){show("❌ "+error.message);return;}if(e)sOf(p=>p.map(o=>o.id===rec.id?rec:o));else sOf(p=>[rec,...p]);show(e?"✅ Ofertă salvată":"✅ Ofertă creată");sMd(null)};
+const COLS=["#059669","#7c3aed","#0891b2","#e11d48","#ea580c","#65a30d","#0284c7","#9333ea"];
+const savAg=async(d,e)=>{if(!isAdm){show("⚠️ Doar admin");return;}const rec=e?{...d,color:d.color||COLS[0]}:{...d,id:uid(),color:COLS[ag.length%COLS.length]};const{error}=await sb.from('st_agents').upsert(toDb(rec));if(error){show("❌ "+error.message);return;}if(e)sAg(p=>p.map(a=>a.id===rec.id?rec:a));else sAg(p=>[...p,rec]);show(e?"✅ Agent salvat":"✅ Agent adăugat");sMd(null)};
+const delAg=async id=>{if(!isAdm){show("⚠️ Doar admin");return;}const{error}=await sb.from('st_agents').delete().eq('id',id);if(error){show("❌ "+error.message);return;}sAg(p=>p.filter(a=>a.id!==id));const fallback=ag.find(a=>a.id!==id)?.id||null;await sb.from('st_clients').update({agent_id:fallback}).eq('agent_id',id);sCl(p=>p.map(c2=>c2.agentId===id?{...c2,agentId:fallback}:c2));show("🗑 Agent șters");sCf(null);sMd(null)};
+const getAdmP=()=>admPass;
+const setAdmP=async v=>{const{error}=await sb.from('st_settings').upsert({key:'admin_pass',value:v});if(!error)sAdmPass(v);};
+
+const stats=useMemo(()=>{
+  const mA=isAgt?ac.filter(a=>a.agentId===myAId):ac;
+  const p=cl.filter(c=>c.stage!=="pierdut"&&c.stage!=="castigat");const w=cl.filter(c=>c.stage==="castigat");
+  const pv=p.reduce((s,c)=>s+c.value,0);const wv=w.reduce((s,c)=>s+c.value,0);
+  const pl=mA.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td);
+  const ov=mA.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td);
+  const ta=mA.filter(a=>a.date===td);
+  const mOf=isAgt?of.filter(o=>o.agentId===myAId||cl.some(x=>x.id===o.clientId&&(x.agentId===myAId||x.agentId2===myAId))):of;
+  const aOf=mOf.filter(o=>o.status==="trimis").length;
+  return{tot:cl.length,pv,wv,pl:pl.length,ov:ov.length,ta:ta.length,aOf};
+},[cl,ac,myAId]);
+
+// ═══ FORMS ═══
+const CForm=({data:init})=>{
+  const [f,sF]=useState(init||{company:"",cui:"",name:"",email:"",phone:"",zone:"",stage:"lead",agentId:(ag[0]||{}).id||"",value:0,source:"",notes:""});
+  const u=(k,v)=>sF(p=>({...p,[k]:v}));
+  return<div className="fg">
+    <div className="fi"><label className="fl">Firmă *</label><input value={f.company} onChange={e=>u("company",e.target.value)} placeholder="Denumire"/></div>
+    <div className="fr"><div className="fi"><label className="fl">CUI</label><input value={f.cui||""} onChange={e=>u("cui",e.target.value)} className="M"/></div>
+    <div className="fi"><label className="fl">Contact</label><input value={f.name} onChange={e=>u("name",e.target.value)}/></div></div>
+    <div className="fr"><div className="fi"><label className="fl">Telefon</label><input value={f.phone} onChange={e=>u("phone",e.target.value)} type="tel"/></div>
+    <div className="fi"><label className="fl">Email</label><input value={f.email} onChange={e=>u("email",e.target.value)} type="email"/></div></div>
+    <div className="fr"><div className="fi"><label className="fl">Zonă</label><input value={f.zone} onChange={e=>u("zone",e.target.value)}/></div>
+    <div className="fi"><label className="fl">Valoare</label><input type="number" value={f.value} onChange={e=>u("value",+e.target.value)}/></div></div>
+    <div className="fr"><div className="fi"><label className="fl">Etapă</label><select value={f.stage} onChange={e=>u("stage",e.target.value)}>{ST.map(s=><option key={s.id} value={s.id}>{s.i} {s.l}</option>)}</select></div>
+    <div className="fi"><label className="fl">Agent</label><select value={f.agentId} onChange={e=>u("agentId",e.target.value)}>{ag.filter(a=>a.status==="activ").map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></div></div>
+    <div className="fi"><label className="fl">Sursă</label><select value={f.source||""} onChange={e=>u("source",e.target.value)}><option value="">—</option><option>Website</option><option>Referință</option><option>Cold call</option><option>LinkedIn</option><option>Expo</option><option>Partener</option></select></div>
+    <div className="fi"><label className="fl">Agent secundar</label><select value={f.agentId2||""} onChange={e=>u("agentId2",e.target.value)}><option value="">— niciunul —</option>{ag.filter(a=>a.status==="activ"&&a.id!==f.agentId).map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
+    <div className="fi"><label className="fl">Notițe</label><textarea value={f.notes} onChange={e=>u("notes",e.target.value)} rows={2}/></div>
+    <button className="btn btn-p btn-f" style={{marginTop:8}} onClick={()=>{if(!f.company)return show("⚠️ Completează firma");savC({...init,...f},!!(init&&init.id))}}>💾 {(init&&init.id)?"Salvează":"Adaugă"}</button>
+  </div>;
+};
+
+const AForm=({data:init})=>{
+  const [f,sF]=useState(init||{clientId:(cl[0]||{}).id||"",agentId:(ag[0]||{}).id||"",type:"vizita",date:td,time:nwT(),duration:60,status:"planificat",result:"",notes:""});
+  const [cSr,sCsr]=useState("");
+  const u=(k,v)=>sF(p=>({...p,[k]:v}));
+  const fc=cSr.trim()?cl.filter(c=>c.id===f.clientId||(c.company+" "+c.name+" "+(c.cui||"")).toLowerCase().includes(cSr.toLowerCase())):cl;
+  const selC=cl.find(c=>c.id===f.clientId);
+  return<div className="fg">
+    <div className="fi"><label className="fl">Client {selC?<span style={{fontWeight:400,color:"#34d399"}}>{" — "+selC.company}</span>:""}</label>
+      <input type="text" placeholder="🔍 Caută client..." value={cSr} onChange={e=>sCsr(e.target.value)} style={{marginBottom:4,fontSize:13,padding:"8px 10px",borderRadius:8,border:"1px solid var(--border)",background:"var(--bg)",color:"var(--text)"}}/>
+      <div style={{maxHeight:120,overflowY:"auto",border:"1px solid var(--border)",borderRadius:8,background:"var(--bg)"}}>
+        {fc.length===0?<div style={{padding:10,textAlign:"center",color:"var(--dim)",fontSize:12}}>Niciun rezultat</div>:
+        fc.slice(0,30).map(x=><div key={x.id} onClick={()=>{u("clientId",x.id);sCsr("")}} style={{padding:"7px 10px",fontSize:12,borderBottom:"1px solid var(--border)",background:f.clientId===x.id?"rgba(99,102,241,.15)":"transparent",fontWeight:f.clientId===x.id?600:400}}>{x.company} — {x.name} {x.cui?"("+x.cui+")":""}</div>)}
+      </div>
+    </div>
+    <div className="fr"><div className="fi"><label className="fl">Tip</label><select value={f.type} onChange={e=>u("type",e.target.value)}>{TY.map(t=><option key={t.id} value={t.id}>{t.i} {t.l}</option>)}</select></div>
+    <div className="fi"><label className="fl">Agent</label><select value={f.agentId} onChange={e=>u("agentId",e.target.value)}>{ag.filter(a=>a.status==="activ").map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></div></div>
+    <div className="fr"><div className="fi"><label className="fl">Data</label><DateIn value={f.date} onChange={v=>u("date",v)} style={{width:"100%"}}/></div>
+    <div className="fi"><label className="fl">Ora</label><input type="time" value={f.time} onChange={e=>u("time",e.target.value)}/></div></div>
+    <div className="fr"><div className="fi"><label className="fl">Durată</label><input type="number" value={f.duration} onChange={e=>u("duration",+e.target.value)}/></div>
+    <div className="fi"><label className="fl">Status</label><select value={f.status} onChange={e=>u("status",e.target.value)}><option value="planificat">📅 Planificat</option><option value="in_desfasurare">🔄 În desfășurare</option><option value="finalizat">✅ Finalizat</option><option value="anulat">🚫 Anulat</option></select></div></div>
+    <div className="fi"><label className="fl">Rezultat</label><select value={f.result} onChange={e=>u("result",e.target.value)}><option value="">—</option><option value="pozitiv">✅ Pozitiv</option><option value="neutru">⚪ Neutru</option><option value="negativ">❌ Negativ</option></select></div>
+    <div className="fi"><label className="fl">Notițe</label><textarea value={f.notes} onChange={e=>u("notes",e.target.value)} rows={2}/></div>
+    {init&&init.createdAt&&<div style={{fontSize:10,color:"var(--dim)",background:"var(--bg2)",borderRadius:6,padding:"5px 8px",marginTop:4}}>📝 Introdus: <span className="M">{fmtTs(init.createdAt)}</span></div>}
+    <button className="btn btn-p btn-f" style={{marginTop:8}} onClick={()=>{if(!f.clientId)return show("⚠️ Alege client");savA({...init,...f},!!(init&&init.id))}}>💾 {(init&&init.id)?"Salvează":"Adaugă"}</button>
+  </div>;
+};
+
+
+const OForm=({data:init})=>{
+  const [f,sF]=useState(init||{clientId:(cl[0]||{}).id||"",agentId:isAgt?myAId:(ag[0]||{}).id||"",status:"draft",validUntil:"",items:[{desc:"",qty:1,price:0}],discount:0,notes:""});
+  const [oSr,setOSr]=useState("");
+  const u=(k,v)=>sF(p=>({...p,[k]:v}));
+  const uIt=(i,k,v)=>{const its=[...f.items];its[i]={...its[i],[k]:v};u("items",its);};
+  const tot=oTotal(f);
+  const fOC=oSr.trim()?cl.filter(x=>x.id===f.clientId||(x.company+" "+x.name+" "+(x.cui||"")).toLowerCase().includes(oSr.toLowerCase())):cl;
+  const selC=cl.find(x=>x.id===f.clientId);
+  return<div className="fg">
+    <div className="fi"><label className="fl">Client {selC?<span style={{fontWeight:400,color:"#34d399"}}>{" — "+selC.company}</span>:""}</label>
+      <input type="text" placeholder="🔍 Caută client..." value={oSr} onChange={e=>setOSr(e.target.value)} style={{marginBottom:4,fontSize:13,padding:"8px 10px",borderRadius:8,border:"1px solid var(--border)",background:"var(--bg)",color:"var(--text)"}}/>
+      <div style={{maxHeight:120,overflowY:"auto",border:"1px solid var(--border)",borderRadius:8,background:"var(--bg)"}}>
+        {fOC.length===0?<div style={{padding:10,textAlign:"center",color:"var(--dim)",fontSize:12}}>Niciun rezultat</div>:
+        fOC.slice(0,30).map(x=><div key={x.id} onClick={()=>{u("clientId",x.id);setOSr("")}} style={{padding:"7px 10px",fontSize:12,borderBottom:"1px solid var(--border)",background:f.clientId===x.id?"rgba(99,102,241,.15)":"transparent",fontWeight:f.clientId===x.id?600:400}}>{x.company} — {x.name} {x.cui?"("+x.cui+")":""}</div>)}
+      </div>
+    </div>
+    <div className="fr"><div className="fi"><label className="fl">Status</label><select value={f.status} onChange={e=>u("status",e.target.value)}><option value="draft">Draft</option><option value="trimis">Trimis</option><option value="acceptat">Acceptat</option><option value="respins">Respins</option></select></div>
+    <div className="fi"><label className="fl">Valid până la</label><DateIn value={f.validUntil} onChange={v=>u("validUntil",v)} style={{width:"100%"}}/></div></div>
+    <div className="fi"><label className="fl">Produse / Servicii</label>
+      {f.items.map((it,i)=><div key={i} style={{display:"flex",gap:4,marginBottom:6,alignItems:"center"}}>
+        <input style={{flex:3}} placeholder="Descriere" value={it.desc} onChange={e=>uIt(i,"desc",e.target.value)}/>
+        <input style={{width:45}} type="number" placeholder="Qty" value={it.qty} onChange={e=>uIt(i,"qty",+e.target.value)}/>
+        <input style={{width:70}} type="number" placeholder="Preț" value={it.price} onChange={e=>uIt(i,"price",+e.target.value)}/>
+        {f.items.length>1&&<button className="btn btn-xs btn-d" onClick={()=>u("items",f.items.filter((_,j)=>j!==i))}>✕</button>}
+      </div>)}
+      <button className="btn btn-xs btn-g" onClick={()=>u("items",[...f.items,{desc:"",qty:1,price:0}])}>+ Rând</button>
+    </div>
+    <div className="fr"><div className="fi"><label className="fl">Discount %</label><input type="number" value={f.discount} onChange={e=>u("discount",+e.target.value)} min={0} max={100}/></div>
+    <div className="fi"><label className="fl">Total</label><div className="M" style={{fontSize:18,fontWeight:700,color:"#10b981",padding:"6px 0"}}>{fmt(tot)}</div></div></div>
+    <div className="fi"><label className="fl">Notițe</label><textarea value={f.notes} onChange={e=>u("notes",e.target.value)} rows={2}/></div>
+    <button className="btn btn-p btn-f" style={{marginTop:8}} onClick={()=>{if(!f.clientId)return show("⚠️ Alege client");savO({...init,...f},!!(init&&init.id))}}>💾 {(init&&init.id)?"Salvează":"Creează Ofertă"}</button>
+  </div>;
+};
+
+const AgForm=({data:init})=>{
+  const [f,sF]=useState(init||{name:"",zone:"",phone:"",email:"",role:"Agent",target:30000,status:"activ",startDate:td,password:""});
+  const u=(k,v)=>sF(p=>({...p,[k]:v}));
+  return<div className="fg">
+    <div className="fi"><label className="fl">Nume complet *</label><input value={f.name} onChange={e=>u("name",e.target.value)} placeholder="Ex: Andrei Popescu"/></div>
+    <div className="fr"><div className="fi"><label className="fl">Zonă *</label><input value={f.zone} onChange={e=>u("zone",e.target.value)}/></div>
+    <div className="fi"><label className="fl">Rol</label><select value={f.role} onChange={e=>u("role",e.target.value)}><option>Junior</option><option>Agent</option><option>Senior</option><option>Manager</option></select></div></div>
+    <div className="fr"><div className="fi"><label className="fl">Telefon</label><input value={f.phone} onChange={e=>u("phone",e.target.value)} type="tel"/></div>
+    <div className="fi"><label className="fl">Email</label><input value={f.email} onChange={e=>u("email",e.target.value)} type="email"/></div></div>
+    <div className="fr"><div className="fi"><label className="fl">Status</label><select value={f.status} onChange={e=>u("status",e.target.value)}><option value="activ">Activ</option><option value="inactiv">Inactiv</option></select></div>
+    <div className="fi"><label className="fl">Target (RON)</label><input type="number" value={f.target} onChange={e=>u("target",+e.target.value)}/></div></div>
+    <div className="fi"><label className="fl">🔑 Parolă login</label><input value={f.password||""} onChange={e=>u("password",e.target.value)} placeholder="Parolă agent"/></div>
+    <button className="btn btn-p btn-f" style={{marginTop:8}} onClick={()=>{if(!f.name||!f.zone)return show("⚠️ Nume și zonă obligatorii");savAg({...init,...f},!!(init&&init.id))}}>💾 {(init&&init.id)?"Salvează":"Adaugă Agent"}</button>
+  </div>;
+};
+
+const Offers=()=>{
+  const fSt=oFSt,sFSt=sOFSt;const fAg=oFAg,sFAg=sOFAg;const fCl=oFCl,sFCl=sOFCl;
+  const fD1=oFD1,sFD1=sOFD1;const fD2=oFD2,sFD2=sOFD2;const showF=oShowF,sShowF=sOShowF;
+  const hasF=fAg!=="all"||fCl!=="all"||fD1||fD2;
+  const clrF=()=>{sFAg("all");sFCl("all");sFD1("");sFD2("")};
+  const fl=useMemo(()=>{
+    let r=isAgt?of.filter(o=>o.agentId===myAId||cl.some(x=>x.id===o.clientId&&(x.agentId===myAId||x.agentId2===myAId))):of;
+    if(fSt!=="all")r=r.filter(o=>o.status===fSt);
+    if(isAdm&&fAg!=="all")r=r.filter(o=>o.agentId===fAg);
+    if(isAdm&&fCl!=="all")r=r.filter(o=>o.clientId===fCl);
+    if(isAdm&&fD1)r=r.filter(o=>(o.date||"")>=fD1);
+    if(isAdm&&fD2)r=r.filter(o=>(o.date||"")<=fD2);
+    if(sr)r=r.filter(o=>{const c2=gC(o.clientId);return((c2?c2.company:"")+" "+(c2?c2.name:"")).toLowerCase().includes(sr.toLowerCase())});
+    return[...r].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  },[of,fSt,fAg,fCl,fD1,fD2,sr,myAId,cl]);
+  const totV=fl.reduce((s,o)=>s+oTotal(o),0);
+  return<div>
+    <div style={{display:"flex",gap:6,marginBottom:8,alignItems:"center",flexWrap:"wrap"}}>
+      {dsk&&<button className="btn btn-s btn-p" onClick={()=>sMd({t:"no"})}>+ Ofertă Nouă</button>}
+      <div className="tabs" style={{flex:1}}>{["all","draft","trimis","acceptat","respins"].map(s=><div key={s} className={"tab"+(fSt===s?" on":"")} onClick={()=>sFSt(s)}>{s==="all"?"Toate":s[0].toUpperCase()+s.slice(1)}</div>)}</div>
+      {isAdm&&<button className={"btn btn-s "+(showF||hasF?"btn-p":"btn-g")} style={{padding:"4px 10px",fontSize:11}} onClick={()=>sShowF(!showF)}>🔍{hasF?" ●":""}</button>}
+    </div>
+    {isAdm&&showF&&<div style={{background:"var(--bg2)",borderRadius:10,padding:12,marginBottom:10,border:"1px solid rgba(99,102,241,.2)"}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Agent</div><select style={{fontSize:12,padding:"6px 8px"}} value={fAg} onChange={e=>sFAg(e.target.value)}><option value="all">Toți</option>{ag.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Client</div><select style={{fontSize:12,padding:"6px 8px"}} value={fCl} onChange={e=>sFCl(e.target.value)}><option value="all">Toți</option>{cl.map(x=><option key={x.id} value={x.id}>{x.company}</option>)}</select></div>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Data de la</div><DateIn value={fD1} onChange={v=>sFD1(v)} style={{fontSize:11,padding:"6px 8px",width:"100%"}}/></div>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Data până</div><DateIn value={fD2} onChange={v=>sFD2(v)} style={{fontSize:11,padding:"6px 8px",width:"100%"}}/></div>
+      </div>
+      <div style={{display:"flex",gap:6,alignItems:"center"}}><span style={{fontSize:11,color:"var(--dim)",flex:1}}>{fl.length} oferte</span>{hasF&&<button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:10,color:"#f87171"}} onClick={clrF}>✕ Reset</button>}</div>
+    </div>}
+    <div style={{display:"flex",gap:8,marginBottom:10,alignItems:"center"}}>
+      <span style={{fontSize:12,color:"var(--dim)"}}>{fl.length} oferte</span>
+      <div style={{flex:1}}/>
+      <span className="M" style={{fontSize:13,fontWeight:700,color:"#10b981"}}>{fmt(totV)}</span>
+    </div>
+    {dsk?<div className="tbl-wrap"><table className="tbl"><thead><tr><th>Client</th><th>Agent</th><th>Status</th><th>Produse</th><th>Data</th><th>Valabil până</th><th>Valoare</th></tr></thead>
+    <tbody>{fl.map(o=>{const cc=gC(o.clientId);const gg=gA(o.agentId);const tot=oTotal(o);const exp=o.status==="trimis"&&o.validUntil&&o.validUntil<td;
+    return<tr key={o.id} style={{cursor:"pointer",borderLeft:o.status==="acceptat"?"3px solid #10b981":o.status==="respins"?"3px solid #ef4444":o.status==="trimis"?"3px solid #06b6d4":"3px solid #64748b"}} onClick={()=>sMd({t:"eo",d:o})}>
+      <td><div style={{fontWeight:600,fontSize:13}}>{cc?.company||"—"}</div><div style={{fontSize:11,color:"#64748b"}}>{cc?.name||""}</div></td>
+      <td style={{fontSize:12,color:"#94a3b8"}}>{gg?.name||"—"}</td>
+      <td><span className={"badge "+(o.status==="acceptat"?"bgr":o.status==="respins"?"br":o.status==="trimis"?"bc":"bg")}>{o.status}{exp?" ⚠️":""}</span></td>
+      <td style={{fontSize:12,color:"#64748b"}}>{(o.items||[]).length} produse</td>
+      <td className="M" style={{fontSize:11,color:"#94a3b8"}}>{fmtD(o.date||"")}</td>
+      <td className="M" style={{fontSize:11,color:exp?"#f87171":"#94a3b8"}}>{fmtD(o.validUntil||"")}</td>
+      <td className="M" style={{fontWeight:600,color:"#10b981"}}>{fmt(tot)}</td>
+    </tr>})}</tbody></table>
+    {fl.length===0&&<div style={{padding:40,textAlign:"center",color:"#475569"}}>Nicio ofertă</div>}
+    </div>
+    :fl.map(o=>{const cc=gC(o.clientId);const gg=gA(o.agentId);const tot=oTotal(o);const exp=o.status==="trimis"&&o.validUntil&&o.validUntil<td;
+    return<div key={o.id} className="li" style={{padding:12,borderLeft:o.status==="acceptat"?"3px solid #10b981":o.status==="respins"?"3px solid #ef4444":o.status==="trimis"?"3px solid #06b6d4":"3px solid #64748b"}} onClick={()=>sMd({t:"eo",d:o})}>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+          <span style={{fontSize:13,fontWeight:700}}>{cc?.company||"—"}</span>
+          <span className={"badge "+(o.status==="acceptat"?"bgr":o.status==="respins"?"br":o.status==="trimis"?"bc":"bg")}>{o.status}{exp?" ⚠️":""}</span>
+        </div>
+        <div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>{(o.items||[]).length} produse · {fmtD(o.date||"")}{gg?" · "+gg.name:""}</div>
+      </div>
+      <div className="M" style={{fontSize:14,fontWeight:700,color:"#10b981"}}>{fmt(tot)}</div>
+    </div>})}
+    {!dsk&&fl.length===0&&<div style={{padding:30,textAlign:"center",color:"var(--dim)"}}>Nicio ofertă</div>}
+  </div>;
+};
+
+// ═══ PAGES ═══
+const Home=()=>{
+  const mAc=isAgt?ac.filter(a=>a.agentId===myAId):ac;
+const up=mAc.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)).slice(0,10);
+  const ov=ac.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td);
+  return<div>
+    <div className="kpis">
+      <div className="kpi" onClick={()=>sPg("clients")}><b className="M" style={{color:"#818cf8"}}>{stats.tot}</b><small>Clienți</small></div>
+      <div className="kpi"><b className="M" style={{color:"#fbbf24"}}>{fmt(stats.pv)}</b><small>Pipeline</small></div>
+      <div className="kpi"><b className="M" style={{color:"#34d399"}}>{fmt(stats.wv)}</b><small>Câștigat</small></div>
+      <div className="kpi" onClick={()=>sPg("acts")}><b className="M" style={{color:stats.ov>0?"#f87171":"#22d3ee"}}>{stats.ta}</b><small>Azi{stats.ov>0&&<span style={{color:"#f87171"}}> · {stats.ov} restante</span>}</small></div>
+      <div className="kpi" onClick={()=>sPg("offers")}><b className="M" style={{color:"#06b6d4"}}>{stats.aOf}</b><small>Oferte active</small></div>
+      {isAdm&&<div className="kpi" onClick={()=>sPg("followup")}><b className="M" style={{color:stats.ov>0?"#f87171":"#10b981"}}>{stats.ov}</b><small>Follow-up</small></div>}
+    </div>
+    {ov.length>0&&<><div className="stitle" style={{color:"#f87171"}}>🔴 Restante ({ov.length})</div>
+      {ov.slice(0,4).map(a=>{const c=gC(a.clientId);return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})}>
+        <span style={{fontSize:20}}>{tI(a.type)}</span>
+        <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{fmtD(a.date)} · {a.notes}</div></div>
+        <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>
+      </div>})}</>}
+    <div className="stitle">📅 Următoarele ({up.length})</div>
+    {up.map(a=>{const c=gC(a.clientId);const g=gA(a.agentId);return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})}>
+      <span style={{fontSize:20}}>{tI(a.type)}</span>
+      <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{(c?c.name:"")} · {(g?g.name:"")}</div></div>
+      <div className="li-r"><div className="M" style={{fontSize:12,color:a.date===td?"#fbbf24":"#94a3b8"}}>{fmtD(a.date)}</div><div style={{fontSize:11,color:"var(--dim)"}}>{a.time}</div></div>
+      <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>
+    </div>})}
+    {up.length===0&&<div className="empty">Nicio activitate planificată</div>}
+  </div>;
+};
+
+const Clients=()=>{
+  const tab=cTab,sTab=sCTab;
+  const fAgt=cFAgt,sFAgt=sCFAgt;
+  const srt=cSrt,sSrt=sCSrt;
+  const fl=useMemo(()=>{
+    let r=cl;if(tab!=="all")r=r.filter(c=>c.stage===tab);
+    if(isAdm&&fAgt!=="all")r=r.filter(c=>c.agentId===fAgt||c.agentId2===fAgt);
+    if(sr)r=r.filter(c=>(c.company+" "+c.name+" "+(c.cui||"")+" "+c.zone).toLowerCase().includes(sr.toLowerCase()));
+    return[...r].sort((a,b)=>srt==="value"?b.value-a.value:srt==="date"?(b.createdAt||"").localeCompare(a.createdAt||""):(a.company||"").localeCompare(b.company||""));
+  },[cl,tab,sr,fAgt,srt]);
+  return<div>
+    <div style={{display:"flex",gap:6,marginBottom:8,alignItems:"center",flexWrap:"wrap"}}>
+      {dsk&&<button className="btn btn-s btn-p" onClick={()=>sMd({t:"nc"})}>+ Client Nou</button>}
+      <div className="tabs" style={{flex:1}}>{[["all","Toți"],["lead","🎯"],["prospect","🔍"],["negociere","🤝"],["oferta","📄"],["castigat","✅"],["pierdut","❌"]].map(x=><div key={x[0]} className={"tab"+(tab===x[0]?" on":"")} onClick={()=>sTab(x[0])}>{x[1]}</div>)}</div>
+    </div>
+    {isAdm&&<div style={{display:"flex",gap:6,marginBottom:8}}>
+      <select style={{fontSize:11,padding:"5px 8px",flex:1}} value={fAgt} onChange={e=>sFAgt(e.target.value)}><option value="all">Toți agenții</option>{ag.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select>
+      <select style={{fontSize:11,padding:"5px 8px",flex:1}} value={srt} onChange={e=>sSrt(e.target.value)}><option value="company">Nume ↑</option><option value="value">Valoare ↓</option><option value="date">Dată ↓</option></select>
+      <span style={{fontSize:11,color:"var(--dim)",alignSelf:"center"}}>{fl.length}</span>
+    </div>}
+    {dsk?<div className="tbl-wrap"><table className="tbl"><thead><tr><th>Client</th><th>CUI</th><th>Etapă</th><th>Agent</th><th>Valoare</th><th>Sursă</th><th>Ultimul Contact</th></tr></thead>
+    <tbody>{fl.map(c=>{const g=gA(c.agentId);const s=sI(c.stage);
+      const d2x=new Date(new Date(td).getTime()+2*86400000).toISOString().split("T")[0];
+      const soon=ac.some(a=>a.clientId===c.id&&(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td&&a.date<=d2x);
+      const late=ac.some(a=>a.clientId===c.id&&(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td);
+      const stale=c.lastContact&&(new Date(td)-new Date(c.lastContact))/(86400000)>14;
+      return<tr key={c.id} style={{cursor:"pointer",background:late?"rgba(239,68,68,.12)":soon?"rgba(251,191,36,.14)":"transparent",borderLeft:late?"3px solid #ef4444":soon?"3px solid #fbbf24":"3px solid transparent"}} onClick={()=>sMd({t:"vc",d:c})}>
+        <td><div style={{display:"flex",alignItems:"center"}}><div className="av" style={{background:g?g.color:"#6366f1"}}>{mkA(c.name||c.company)}</div><div><div style={{fontWeight:600}}>{c.company}{late?<span style={{fontSize:10,color:"#f87171",marginLeft:4}}>🔴</span>:soon?<span style={{fontSize:10,color:"#fbbf24",marginLeft:4}}>🟡</span>:""}</div><div style={{fontSize:11,color:"#64748b"}}>{c.name}</div></div></div></td>
+        <td style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#94a3b8"}}>{c.cui||"—"}</td>
+        <td><span className={"badge "+s.b}>{s.i} {s.l}</span></td>
+        <td style={{fontSize:12,color:"#94a3b8"}}>{g?.name||"—"}{c.agentId2?<span style={{fontSize:10,color:"var(--dim)"}}>{" + "+(gA(c.agentId2)?.name||"?")}</span>:""}</td>
+        <td style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,color:"#10b981"}}>{fmt(c.value)}</td>
+        <td style={{fontSize:12,color:"#64748b"}}>{c.source||"—"}</td>
+        <td style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:stale?"#f87171":"#64748b"}}>{fmtD(c.lastContact)}{stale?" ⚠️":""}</td>
+      </tr>})}</tbody></table>
+    {fl.length===0&&<div style={{padding:40,textAlign:"center",color:"#475569"}}>Niciun client</div>}
+    </div>
+    :fl.map(c=>{const g=gA(c.agentId);const s=sI(c.stage);
+      const d2x=new Date(new Date(td).getTime()+2*86400000).toISOString().split("T")[0];
+      const soon=ac.some(a=>a.clientId===c.id&&(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td&&a.date<=d2x);
+      const late=ac.some(a=>a.clientId===c.id&&(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td);
+      return<div key={c.id} className="li" style={late?{background:"rgba(239,68,68,.14)",borderLeft:"3px solid #ef4444"}:soon?{background:"rgba(251,191,36,.14)",borderLeft:"3px solid #fbbf24"}:{}} onClick={()=>sMd({t:"vc",d:c})}>
+      <div className="av" style={{background:(g?g.color:"#6366f1")}}>{mkA(c.name||c.company)}</div>
+      <div className="li-b"><div className="li-t">{c.company}{late?<span style={{marginLeft:4}}>🔴</span>:soon?<span style={{marginLeft:4}}>🟡</span>:""}</div><div className="li-s">{c.name}{c.cui?" · "+c.cui:""}{c.agentId2?<span style={{color:"var(--dim)"}}>{" · 👥"}</span>:""}</div></div>
+      <div className="li-r"><div className="M" style={{fontSize:13,fontWeight:700,color:"#10b981"}}>{fmt(c.value)}</div><span className={"badge "+s.b}>{s.i}</span></div>
+    </div>})}
+    {!dsk&&fl.length===0&&<div className="empty">Niciun client</div>}
+  </div>;
+};
+
+const Acts=()=>{
+  const tab=aTab,sTab=sATab;
+  const showF=aShowF,sShowF=sAShowF;
+  const fAg=aFAg,sFAg=sAFAg;const fCl=aFCl,sFCl=sAFCl;const fSt=aFSt,sFSt=sAFSt;const fTy=aFTy,sFTy=sAFTy;
+  const fD1=aFD1,sFD1=sAFD1;const fD2=aFD2,sFD2=sAFD2;const fI1=aFI1,sFI1=sAFI1;const fI2=aFI2,sFI2=sAFI2;
+  const hasF=fAg!=="all"||fCl!=="all"||fSt!=="all"||fTy!=="all"||fD1||fD2||fI1||fI2;
+  const clrF=()=>{sFAg("all");sFCl("all");sFSt("all");sFTy("all");sFD1("");sFD2("");sFI1("");sFI2("")};
+  const mAc2=isAgt?ac.filter(a=>a.agentId===myAId):ac;
+  const on=mAc2.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td).length;
+  const fl=useMemo(()=>{
+    let r=mAc2;
+    if(tab==="upcoming")r=r.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td);
+    else if(tab==="today")r=r.filter(a=>a.date===td);
+    else if(tab==="done")r=r.filter(a=>a.status==="finalizat");
+    else if(tab==="over")r=r.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td);
+    if(fTy!=="all")r=r.filter(a=>a.type===fTy);
+    if(isAdm&&fAg!=="all")r=r.filter(a=>a.agentId===fAg);
+    if(isAdm&&fCl!=="all")r=r.filter(a=>a.clientId===fCl);
+    if(isAdm&&fSt!=="all")r=r.filter(a=>a.status===fSt);
+    if(isAdm&&fD1)r=r.filter(a=>a.date>=fD1);
+    if(isAdm&&fD2)r=r.filter(a=>a.date<=fD2);
+    if(isAdm&&fI1)r=r.filter(a=>a.createdAt&&a.createdAt.split("T")[0]>=fI1);
+    if(isAdm&&fI2)r=r.filter(a=>a.createdAt&&a.createdAt.split("T")[0]<=fI2);
+    if(sr)r=r.filter(a=>{const c=gC(a.clientId);return(((c?c.company:""))+" "+a.notes).toLowerCase().includes(sr.toLowerCase())});
+    return[...r].sort((a,b)=>tab==="done"?b.date.localeCompare(a.date):a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  },[ac,tab,sr,myAId,fAg,fCl,fSt,fTy,fD1,fD2,fI1,fI2]);
+  return<div>
+    <div style={{display:"flex",gap:6,marginBottom:8,alignItems:"center",flexWrap:"wrap"}}>
+      {dsk&&<button className="btn btn-s btn-p" onClick={()=>sMd({t:"na"})}>+ Activitate Nouă</button>}
+      <div className="tabs" style={{flex:1}}>{[["upcoming","Viitoare"],["today","Azi"],["done","✓ Done"],["over","⚠️"+(on?" "+on:"")]].map(x=><div key={x[0]} className={"tab"+(tab===x[0]?" on":"")} onClick={()=>sTab(x[0])}>{x[1]}</div>)}</div>
+      {isAdm&&<button className={"btn btn-s "+(showF||hasF?"btn-p":"btn-g")} style={{padding:"4px 10px",fontSize:11}} onClick={()=>sShowF(!showF)}>🔍{hasF?" ●":""}</button>}
+    </div>
+    {isAdm&&showF&&<div style={{background:"var(--bg2)",borderRadius:10,padding:12,marginBottom:10,border:"1px solid rgba(99,102,241,.2)"}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Agent</div><select style={{fontSize:12,padding:"6px 8px"}} value={fAg} onChange={e=>sFAg(e.target.value)}><option value="all">Toți</option>{ag.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Client</div><select style={{fontSize:12,padding:"6px 8px"}} value={fCl} onChange={e=>sFCl(e.target.value)}><option value="all">Toți</option>{cl.map(x=><option key={x.id} value={x.id}>{x.company}</option>)}</select></div>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Status</div><select style={{fontSize:12,padding:"6px 8px"}} value={fSt} onChange={e=>sFSt(e.target.value)}><option value="all">Toate</option><option value="planificat">Planificat</option><option value="in_desfasurare">Desfășurare</option><option value="finalizat">Finalizat</option><option value="anulat">Anulat</option></select></div>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Tip</div><select style={{fontSize:12,padding:"6px 8px"}} value={fTy} onChange={e=>sFTy(e.target.value)}><option value="all">Toate</option>{TY.map(t=><option key={t.id} value={t.id}>{t.i} {t.l}</option>)}</select></div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Data de la</div><DateIn value={fD1} onChange={v=>sFD1(v)} style={{fontSize:11,padding:"6px 8px",width:"100%"}}/></div>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Data până</div><DateIn value={fD2} onChange={v=>sFD2(v)} style={{fontSize:11,padding:"6px 8px",width:"100%"}}/></div>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Introdus de la</div><DateIn value={fI1} onChange={v=>sFI1(v)} style={{fontSize:11,padding:"6px 8px",width:"100%"}}/></div>
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Introdus până</div><DateIn value={fI2} onChange={v=>sFI2(v)} style={{fontSize:11,padding:"6px 8px",width:"100%"}}/></div>
+      </div>
+      <div style={{display:"flex",gap:6,alignItems:"center"}}><span style={{fontSize:11,color:"var(--dim)",flex:1}}>{fl.length} rezultate</span>{hasF&&<button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:10,color:"#f87171"}} onClick={clrF}>✕ Reset</button>}</div>
+    </div>}
+    {dsk?<div className="tbl-wrap"><table className="tbl"><thead><tr><th>Tip</th><th>Client</th><th>Agent</th><th>Data / Ora</th><th>Durată</th><th>Status</th><th>Rezultat</th><th style={{maxWidth:200}}>Notițe</th><th>Acțiuni</th></tr></thead>
+    <tbody>{fl.map(a=>{const c=gC(a.clientId);const agt=gA(a.agentId);const late=(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td;
+      const d2m=new Date(new Date(td).getTime()+2*86400000).toISOString().split("T")[0];
+      const soon=(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td&&a.date<=d2m;
+      return<tr key={a.id} style={{background:late?"rgba(239,68,68,.12)":soon?"rgba(251,191,36,.14)":"transparent",borderLeft:late?"3px solid #ef4444":soon?"3px solid #fbbf24":"3px solid transparent"}}>
+        <td style={{fontSize:16}}>{tI(a.type)}</td>
+        <td style={{cursor:"pointer"}} onClick={()=>c&&sMd({t:"vc",d:c})}><div style={{fontWeight:600,fontSize:13}}>{c?.company||"—"}</div><div style={{fontSize:11,color:"#64748b"}}>{c?.name}</div></td>
+        <td style={{fontSize:12,color:"#94a3b8"}}>{agt?.name||"—"}</td>
+        <td><div className="M" style={{fontSize:11,color:late?"#f87171":a.date===td?"#fbbf24":"#94a3b8"}}>{fmtD(a.date)}</div><div style={{fontSize:11,color:"#64748b"}}>{a.time}</div></td>
+        <td style={{fontSize:12,color:"#64748b"}}>{a.duration?a.duration+"m":"—"}</td>
+        <td><span className={"badge "+(a.status==="finalizat"?"bgr":a.status==="in_desfasurare"?"by":late?"br":"bb")}>{a.status==="in_desfasurare"?"în desfășurare":a.status}</span></td>
+        <td>{a.result?<span>{a.result==="pozitiv"?"✅":a.result==="negativ"?"❌":"⚪"}</span>:"—"}</td>
+        <td style={{fontSize:12,color:"#94a3b8",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.notes}</td>
+        <td style={{whiteSpace:"nowrap"}} onClick={e=>e.stopPropagation()}>
+          <button className="btn btn-s btn-g" onClick={()=>sMd({t:"ea",d:a})} style={{padding:"4px 8px",fontSize:11}}>✏️</button>
+          {a.status==="planificat"&&<button className="btn btn-s btn-ok" style={{marginLeft:4,padding:"4px 8px",fontSize:11}} onClick={()=>finA(a)}>✓</button>}
+        </td>
+      </tr>})}</tbody></table>
+    {fl.length===0&&<div style={{padding:40,textAlign:"center",color:"#475569"}}>Nicio activitate</div>}
+    </div>
+    :fl.map(a=>{const c=gC(a.clientId);const late=(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td;
+      const d2m=new Date(new Date(td).getTime()+2*86400000).toISOString().split("T")[0];
+      const soon=(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td&&a.date<=d2m;
+      return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})} style={late?{background:"rgba(239,68,68,.14)",borderLeft:"3px solid #ef4444"}:soon?{background:"rgba(251,191,36,.14)",borderLeft:"3px solid #fbbf24"}:{}}>
+      <span style={{fontSize:20}}>{tI(a.type)}</span>
+      <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{(c?c.name:"")} · {a.notes}</div></div>
+      <div className="li-r"><div className="M" style={{fontSize:11,color:late?"#f87171":a.date===td?"#fbbf24":"#94a3b8"}}>{fmtD(a.date)} {a.time}</div><span className={"badge "+(a.status==="finalizat"?"bgr":a.status==="in_desfasurare"?"by":late?"br":"bb")} style={{fontSize:10}}>{a.status}</span></div>
+      {a.status==="planificat"&&<button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>}
+    </div>})}
+    {!dsk&&fl.length===0&&<div className="empty">Nicio activitate</div>}
+  </div>;
+};
+
+const Pipe=()=>{
+  const [tab,sTab]=useState("lead");
+  const pipeData=ST.map(s=>({...s,clients:cl.filter(c=>c.stage===s.id).sort((a,b)=>b.value-a.value),total:cl.filter(c=>c.stage===s.id).reduce((sum,c)=>sum+c.value,0)}));
+  if(dsk){
+    const pipeTot=pipeData.slice(0,4).reduce((s,p)=>s+p.total,0);
+    return<div>
+      <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"center"}}>
+        <button className="btn btn-s btn-p" onClick={()=>sMd({t:"nc",d:{stage:"lead"}})}>+ Lead Nou</button>
+        <div style={{flex:1}}/><span className="M" style={{fontSize:14,color:"#fbbf24",fontWeight:700}}>Total pipeline: {fmt(pipeTot)}</span>
+      </div>
+      <div className="pipeline">{pipeData.map(s=><div key={s.id} className="pipe-col">
+        <div className="pipe-head"><div><div className="pipe-title">{s.i} {s.l}</div><div className="pipe-count">{s.clients.length} · {fmt(s.total)}</div></div></div>
+        <div className="pipe-body">
+          {s.clients.map(c=>{const g=gA(c.agentId);return<div key={c.id} className="pipe-card" onClick={()=>sMd({t:"vc",d:c})}>
+            <div style={{fontSize:13,fontWeight:600}}>{c.company}</div>
+            <div style={{fontSize:11,color:"#64748b"}}>{c.name}{c.cui?<span style={{fontFamily:"'JetBrains Mono',monospace",marginLeft:6,color:"var(--dim)"}}>{c.cui}</span>:""}</div>
+            <div style={{fontSize:14,fontWeight:700,color:"#10b981",fontFamily:"'JetBrains Mono',monospace",marginTop:8}}>{fmt(c.value)}</div>
+            <div style={{display:"flex",gap:4,marginTop:8,flexWrap:"wrap",fontSize:10,color:"var(--dim)"}}>
+              <span style={{background:"var(--bg)",padding:"2px 8px",borderRadius:4}}>{g?.name||"—"}</span>
+              {c.source&&<span style={{background:"var(--bg)",padding:"2px 8px",borderRadius:4}}>{c.source}</span>}
+            </div>
+          </div>})}
+          {s.clients.length===0&&<div style={{padding:20,textAlign:"center",color:"#334155",fontSize:12}}>Gol</div>}
+        </div>
+      </div>)}</div>
+    </div>;
+  }
+  const s=sI(tab);const list=cl.filter(c=>c.stage===tab).sort((a,b)=>b.value-a.value);
+  const tot=list.reduce((s,c)=>s+c.value,0);
+  return<div>
+    <div className="tabs">{ST.map(x=>{const n=cl.filter(c=>c.stage===x.id).length;return<div key={x.id} className={"tab"+(tab===x.id?" on":"")} onClick={()=>sTab(x.id)}>{x.i}{n>0?" "+n:""}</div>})}</div>
+    <div style={{fontSize:14,fontWeight:700,marginBottom:10}}>{s.i} {s.l} · <span className="M" style={{color:"#10b981"}}>{fmt(tot)}</span> ({list.length})</div>
+    {list.map(c=>{const g=gA(c.agentId);return<div key={c.id} className="li" onClick={()=>sMd({t:"vc",d:c})}>
+      <div className="av" style={{background:(g?g.color:"#6366f1")}}>{mkA(c.name||c.company)}</div>
+      <div className="li-b"><div className="li-t">{c.company}</div><div className="li-s">{c.name} · {(g?g.name:"")}</div></div>
+      <div className="M" style={{fontSize:14,fontWeight:700,color:"#10b981"}}>{fmt(c.value)}</div>
+    </div>})}
+    {list.length===0&&<div className="empty">Gol</div>}
+  </div>;
+};
+
+const FollowUp=()=>{
+  const fActs=isAgt?ac.filter(a=>a.agentId===myAId):ac;
+  const calls=fActs.filter(a=>a.type==="telefon"&&a.status==="planificat").sort((a,b)=>a.date.localeCompare(b.date));
+  const overCalls=calls.filter(a=>a.date<td);
+  const upCalls=calls.filter(a=>a.date>=td);
+  const fCl=isAgt?cl.filter(c=>c.agentId===myAId||c.agentId2===myAId):cl;
+  const stale=fCl.filter(c=>c.stage!=="pierdut"&&c.stage!=="castigat").filter(c=>{if(!c.lastContact)return true;return(new Date(td)-new Date(c.lastContact))/(86400000)>=14;});
+  return<div>
+    <button className="btn btn-p btn-f" style={{marginBottom:12}} onClick={()=>sMd({t:"na",d:{type:"telefon",status:"planificat",date:td,time:nwT(),duration:15,clientId:cl[0]?.id,agentId:isAgt?myAId:ag[0]?.id,result:"",notes:""}})}>+ Programează Apel</button>
+    {overCalls.length>0&&<><div className="stitle" style={{color:"#f87171"}}>🔴 Apeluri Restante ({overCalls.length})</div>
+    {overCalls.map(a=>{const cc=gC(a.clientId);return<div key={a.id} className="li" style={{borderLeft:"3px solid #ef4444",padding:12}} onClick={()=>sMd({t:"ea",d:a})}>
+      <span style={{fontSize:18}}>📞</span>
+      <div className="li-b"><div className="li-t">{cc?.company||"—"}</div><div className="li-s">{cc?.name} · {a.notes}</div></div>
+      <div className="li-r"><div className="M" style={{fontSize:11,color:"#f87171"}}>{fmtD(a.date)}</div></div>
+      <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}} style={{padding:"4px 8px"}}>✓</button>
+    </div>})}</>}
+    <div className="stitle">📞 Programate ({upCalls.length})</div>
+    {upCalls.map(a=>{const cc=gC(a.clientId);return<div key={a.id} className="li" style={{padding:12}} onClick={()=>sMd({t:"ea",d:a})}>
+      <span style={{fontSize:18}}>📞</span>
+      <div className="li-b"><div className="li-t">{cc?.company||"—"}</div><div className="li-s">{cc?.name} · {a.notes}</div></div>
+      <div className="li-r"><div className="M" style={{fontSize:11,color:a.date===td?"#fbbf24":"#94a3b8"}}>{fmtD(a.date)} {a.time}</div></div>
+      <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}} style={{padding:"4px 8px"}}>✓</button>
+    </div>})}
+    {upCalls.length===0&&<div className="empty">Niciun apel programat</div>}
+    <div className="stitle" style={{color:"#f59e0b"}}>⚠️ De Contactat — 14+ zile ({stale.length})</div>
+    {stale.map(cc=>{const gg=gA(cc.agentId);return<div key={cc.id} className="li" style={{borderLeft:"3px solid #f59e0b",padding:12}} onClick={()=>sMd({t:"vc",d:cc})}>
+      <div className="av" style={{background:gg?.color||"#6366f1",width:32,height:32,fontSize:11}}>{mkA(cc.name||cc.company)}</div>
+      <div className="li-b"><div className="li-t">{cc.company}</div><div className="li-s">{cc.name} · {gg?.name||""} · {fmtD(cc.lastContact)}</div></div>
+      <button className="btn btn-s btn-p" onClick={e=>{e.stopPropagation();sMd({t:"na",d:{type:"telefon",clientId:cc.id,agentId:cc.agentId,date:td,time:nwT(),duration:15,status:"planificat",result:"",notes:"Follow-up"}})}} style={{padding:"4px 8px",fontSize:11}}>📞</button>
+    </div>})}
+    {stale.length===0&&<div className="empty">✅ Toți contactați recent</div>}
+  </div>;
+};
+
+const Reports=()=>{
+  const [rpP,sRpP]=useState("azi");
+  const [rpF,sRpF]=useState(td);const [rpT,sRpT]=useState(td);
+  const apP=p=>{sRpP(p);const d=new Date(td);
+    if(p==="azi"){sRpF(td);sRpT(td)}
+    else if(p==="ieri"){const y=new Date(d.getTime()-86400000).toISOString().split("T")[0];sRpF(y);sRpT(y)}
+    else if(p==="sapt"){sRpF(new Date(d.getTime()-6*86400000).toISOString().split("T")[0]);sRpT(td)}
+    else if(p==="luna"){sRpF(new Date(d.getFullYear(),d.getMonth(),1).toISOString().split("T")[0]);sRpT(td)}
+  };
+  const rpAc=ac.filter(a=>a.date>=rpF&&a.date<=rpT);
+  const rpOf=of.filter(o=>o.date>=rpF&&o.date<=rpT);
+  const agR=ag.filter(a=>a.status==="activ").map(x=>{
+    const aA=rpAc.filter(a=>a.agentId===x.id);const aO=rpOf.filter(o=>o.agentId===x.id);
+    const byT={};TY.forEach(t=>{byT[t.id]={n:aA.filter(a=>a.type===t.id).length,d:aA.filter(a=>a.type===t.id&&a.status==="finalizat").length}});
+    const dn=aA.filter(a=>a.status==="finalizat").length;const pl=aA.filter(a=>a.status==="planificat"||a.status==="in_desfasurare").length;
+    const poz=aA.filter(a=>a.result==="pozitiv").length;const neg=aA.filter(a=>a.result==="negativ").length;
+    const mins=aA.reduce((s,a)=>s+(a.duration||0),0);
+    const oSent=aO.filter(o=>o.status==="trimis").length;const oWon=aO.filter(o=>o.status==="acceptat").length;
+    const oVal=aO.reduce((s,o)=>s+oTotal(o),0);
+    return{...x,byT,tot:aA.length,dn,pl,poz,neg,mins,oTot:aO.length,oSent,oWon,oVal};
+  });
+  return<div>
+    <div className="stitle">📊 Raport Activitate Agenți</div>
+    <div className="tabs" style={{marginBottom:8}}>{[["azi","Azi"],["ieri","Ieri"],["sapt","Săpt."],["luna","Luna"],["custom","Perioadă"]].map(x=><div key={x[0]} className={"tab"+(rpP===x[0]?" on":"")} onClick={()=>apP(x[0])}>{x[1]}</div>)}</div>
+    {rpP==="custom"&&<div style={{display:"flex",gap:6,marginBottom:10}}><DateIn value={rpF} onChange={v=>sRpF(v)} style={{fontSize:11,padding:"5px 8px",flex:1}}/><span style={{color:"var(--dim)",alignSelf:"center"}}>→</span><DateIn value={rpT} onChange={v=>sRpT(v)} style={{fontSize:11,padding:"5px 8px",flex:1}}/></div>}
+    <div style={{fontSize:11,color:"var(--dim)",marginBottom:10}}>{rpAc.length} activități · {rpOf.length} oferte</div>
+    {agR.map(a=>{const pct=a.tot>0?Math.round(a.dn/a.tot*100):0;
+    return<div key={a.id} style={{background:"var(--card)",borderRadius:12,padding:14,border:"1px solid var(--border)",marginBottom:10}}>
+      <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
+        <div className="av" style={{background:a.color,width:36,height:36,fontSize:12}}>{mkA(a.name)}</div>
+        <div style={{flex:1}}><div style={{fontSize:14,fontWeight:700}}>{a.name}</div><div style={{fontSize:11,color:"var(--dim)"}}>{a.zone}</div></div>
+        <div style={{textAlign:"right"}}><div className="M" style={{fontSize:20,fontWeight:800,color:"#818cf8"}}>{a.tot}</div><div style={{fontSize:10,color:"var(--dim)"}}>total</div></div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:8}}>
+        {TY.map(t=>{const v=a.byT[t.id];return v.n>0?<div key={t.id} style={{background:"var(--bg2)",borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
+          <div style={{fontSize:15}}>{t.i}</div><div className="M" style={{fontSize:14,fontWeight:700}}>{v.n}</div>{v.d>0&&<div style={{fontSize:9,color:"#10b981"}}>✓{v.d}</div>}
+        </div>:null})}
+      </div>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:11}}>
+        <span style={{color:"#10b981"}}>✅ {a.dn} done ({pct}%)</span>
+        <span style={{color:"#f59e0b"}}>⏳ {a.pl}</span>
+        {a.poz>0&&<span style={{color:"#10b981"}}>👍{a.poz}</span>}
+        {a.neg>0&&<span style={{color:"#f87171"}}>👎{a.neg}</span>}
+        <span className="M" style={{color:"var(--dim)"}}>{a.mins>=60?Math.floor(a.mins/60)+"h"+(a.mins%60?String(a.mins%60).padStart(2,"0")+"m":""):a.mins+"m"}</span>
+      </div>
+      {a.oTot>0&&<div style={{display:"flex",gap:8,fontSize:11,marginTop:4}}>
+        <span style={{color:"#06b6d4"}}>📄 {a.oTot} oferte</span>
+        {a.oSent>0&&<span>📤{a.oSent}</span>}
+        {a.oWon>0&&<span style={{color:"#10b981"}}>✅{a.oWon}</span>}
+        <span className="M" style={{color:"#10b981",fontWeight:700}}>{fmt(a.oVal)}</span>
+      </div>}
+    </div>})}
+    {agR.length===0&&<div className="empty">Niciun agent activ</div>}
+  </div>;
+};
+
+const More=()=>{
+  return<div>
+    <div style={{background:"var(--card)",borderRadius:12,padding:16,border:"1px solid rgba(16,185,129,.3)",marginBottom:16}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+        <div className="dot" style={{background:"#10b981"}}/>
+        <div style={{fontSize:15,fontWeight:700,color:"#34d399"}}>✅ Supabase Online</div>
+      </div>
+      <div style={{fontSize:12,color:"var(--muted)"}}>{ag.length} agenți · {cl.length} clienți · {ac.length} activități · {of.length} oferte</div>
+    </div>
+
+    <div style={{display:"flex",alignItems:"center",marginBottom:8}}><div className="stitle" style={{flex:1,margin:0}}>👤 Agenți ({ag.length})</div>{isAdm&&<button className="btn btn-s btn-p" style={{padding:"4px 10px",fontSize:11}} onClick={()=>sMd({t:"nag"})}>+ Agent</button>}</div>
+    {ag.map(a=>{const n=cl.filter(c=>c.agentId===a.id||c.agentId2===a.id).length;return<div key={a.id} className="li" style={{padding:12}} onClick={isAdm?()=>sMd({t:"eag",d:a}):undefined}>
+      <div className="av" style={{background:a.color}}>{mkA(a.name)}</div>
+      <div className="li-b"><div className="li-t">{a.name}</div><div className="li-s">{a.zone} · {a.role} · {n} clienți</div></div>
+      <span className={"badge "+(a.status==="activ"?"bgr":"br")}>{a.status}</span>
+      {isAdm&&<button className="btn btn-s btn-g" style={{padding:"3px 6px",fontSize:10,color:"#f87171",marginLeft:4}} onClick={e=>{e.stopPropagation();sCf({msg:"Ștergi agentul "+a.name+"?",ok:()=>delAg(a.id)})}}>🗑</button>}
+    </div>})}
+
+    {isAdm&&<div style={{background:"var(--card)",borderRadius:12,padding:14,border:"1px solid rgba(99,102,241,.2)",marginTop:14}}>
+      <div className="stitle" style={{margin:"0 0 8px 0"}}>🔑 Parole</div>
+      <div style={{marginBottom:10}}>
+        <div style={{fontSize:12,fontWeight:600,marginBottom:4}}>Parola Admin</div>
+        <div style={{display:"flex",gap:6}}>
+          <input id="m-adm-pw" placeholder={"Curentă: "+getAdmP()} style={{flex:1,fontSize:12,padding:"8px 10px"}}/>
+          <button className="btn btn-s btn-p" onClick={async()=>{const v=(document.getElementById("m-adm-pw").value||"").trim();if(!v||v.length<4){show("⚠️ Min 4 caractere");return;}await setAdmP(v);show("✅ Parola admin schimbată");document.getElementById("m-adm-pw").value=""}}>Schimbă</button>
+        </div>
+      </div>
+      {ag.map(x=><div key={x.id} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+        <div className="av" style={{background:x.color,width:28,height:28,fontSize:10}}>{mkA(x.name)}</div>
+        <span style={{fontSize:12,flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{x.name}</span>
+        <input id={"m-pw-"+x.id} placeholder={x.password?"●●● setat":"fără parolă"} style={{width:100,fontSize:11,padding:"6px 8px"}}/>
+        <button className="btn btn-s btn-p" style={{padding:"3px 8px",fontSize:10}} onClick={async()=>{const v=(document.getElementById("m-pw-"+x.id).value||"").trim();if(!v||v.length<3){show("⚠️ Min 3 car.");return;}await sb.from('st_agents').update({password:v}).eq('id',x.id);sAg(p=>p.map(a=>a.id===x.id?{...a,password:v}:a));show("✅ Parolă: "+x.name);document.getElementById("m-pw-"+x.id).value=""}}>Set</button>
+      </div>)}
+    </div>}
+
+    {isAdm&&<div style={{background:"var(--card)",borderRadius:12,padding:14,border:"1px solid rgba(239,68,68,.2)",marginTop:14}}>
+      <div className="stitle" style={{margin:"0 0 8px 0",color:"#f87171"}}>⚠️ Zonă Periculoasă</div>
+      <button className="btn btn-d btn-f" onClick={()=>sCf({msg:"Resetezi totul? Se șterg toate datele!",ok:async()=>{await sb.from('st_activities').delete().neq('id','');await sb.from('st_offers').delete().neq('id','');await sb.from('st_clients').delete().neq('id','');await sb.from('st_agents').delete().neq('id','');sAg([]);sCl([]);sAc([]);sOf([]);show("🔄 Resetat");sCf(null)}})}>🗑 Resetează tot</button>
+    </div>}
+
+    <div style={{marginTop:20,fontSize:11,color:"var(--dim)",textAlign:"center"}}>SalesTrack v5.0 (Supabase) · {cl.length} clienți · {ac.length} activități · {of.length} oferte</div>
+  </div>;
+};
+
+const MoTable=({c})=>{
+  const yr=new Date(td).getFullYear();
+  const [selY,sSelY]=useState(yr);
+  const [ver,sVer]=useState(0);
+  const [expM,sExpM]=useState(false);
+  if(!moRef.current||moRef.current.cId!==c.id){moRef.current={cId:c.id,data:JSON.parse(JSON.stringify(c.monthly||{}))};}
+  const mo=moRef.current.data;
+  const yd=mo[selY]||{};
+  const gV=(m,k)=>{const d=yd[String(m).padStart(2,"0")];return d?d[k]||0:0};
+  const sV=(m,k,v)=>{const mk=String(m).padStart(2,"0");if(!mo[selY])mo[selY]={};if(!mo[selY][mk])mo[selY][mk]={p:0,r:0};mo[selY][mk][k]=v;sVer(n=>n+1)};
+  const totP=Array.from({length:12},(_,i)=>gV(i+1,"p")).reduce((a,b)=>a+b,0);
+  const totR=Array.from({length:12},(_,i)=>gV(i+1,"r")).reduce((a,b)=>a+b,0);
+  const cm=new Date(td).getMonth();
+  const iS={width:"100%",textAlign:"right",fontSize:11,fontFamily:"'JetBrains Mono',monospace",padding:"4px 6px",borderRadius:6,border:"1px solid var(--border)",background:"var(--bg)"};
+  return<div style={{marginBottom:14}}>
+    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+      <div style={{fontSize:13,fontWeight:700,flex:1}}>📊 Prognoză / Realizat</div>
+      {[yr-1,yr,yr+1].map(y=><button key={y} className={"btn btn-s "+(selY===y?"btn-p":"btn-g")} style={{padding:"3px 8px",fontSize:10}} onClick={()=>sSelY(y)}>{y}</button>)}
+    </div>
+    <div style={{background:"var(--bg2)",borderRadius:10,overflow:"hidden",border:"1px solid var(--border)"}}>
+      <div style={{display:"grid",gridTemplateColumns:"50px 1fr 1fr 1fr",fontSize:10,fontWeight:700,color:"var(--muted)",padding:"6px 8px",borderBottom:"1px solid var(--border)",background:"var(--bg)"}}>
+        <div>Luna</div><div style={{textAlign:"right",color:"#818cf8"}}>Progn.</div><div style={{textAlign:"right",color:"#10b981"}}>Real.</div><div style={{textAlign:"right"}}>Dif.</div>
+      </div>
+      {LUNI.map((l,i)=>{const p=gV(i+1,"p");const r=gV(i+1,"r");const d=r-p;const isCur=selY===yr&&i===cm;
+        if(!expM&&selY===yr&&Math.abs(i-cm)>2&&p===0&&r===0)return null;
+        return<div key={i} style={{display:"grid",gridTemplateColumns:"50px 1fr 1fr 1fr",padding:"4px 8px",borderBottom:"1px solid var(--border)",alignItems:"center",background:isCur?"rgba(99,102,241,.08)":"transparent"}}>
+        <div style={{fontSize:11,fontWeight:isCur?700:500,color:isCur?"#818cf8":"var(--text)"}}>{l}</div>
+        <div style={{textAlign:"right"}}><input type="number" value={p||""} placeholder="0" onChange={e=>sV(i+1,"p",+e.target.value||0)} style={{...iS,color:"#818cf8"}}/></div>
+        <div style={{textAlign:"right"}}><input type="number" value={r||""} placeholder="0" onChange={e=>sV(i+1,"r",+e.target.value||0)} style={{...iS,color:"#10b981"}}/></div>
+        <div className="M" style={{textAlign:"right",fontSize:10,fontWeight:600,color:d>0?"#10b981":d<0?"#f87171":"var(--dim)"}}>{d!==0?(d>0?"+":"")+fmt(d):"—"}</div>
+      </div>})}
+      <div style={{display:"grid",gridTemplateColumns:"50px 1fr 1fr 1fr",padding:"6px 8px",fontWeight:700,fontSize:11,background:"var(--bg)"}}>
+        <div>TOT</div>
+        <div className="M" style={{textAlign:"right",color:"#818cf8"}}>{fmt(totP)}</div>
+        <div className="M" style={{textAlign:"right",color:"#10b981"}}>{fmt(totR)}</div>
+        <div className="M" style={{textAlign:"right",fontSize:10,color:totR-totP>0?"#10b981":totR-totP<0?"#f87171":"var(--dim)"}}>{totR-totP!==0?(totR-totP>0?"+":"")+fmt(totR-totP):"—"}</div>
+      </div>
+    </div>
+    {!expM&&<button style={{width:"100%",background:"none",border:"none",color:"var(--dim)",fontSize:10,padding:"6px 0"}} onClick={()=>sExpM(true)}>▼ Arată toate lunile</button>}
+    {expM&&<button style={{width:"100%",background:"none",border:"none",color:"var(--dim)",fontSize:10,padding:"6px 0"}} onClick={()=>sExpM(false)}>▲ Restrânge</button>}
+    {totP>0&&<div style={{marginTop:6,height:5,borderRadius:3,background:"var(--bg2)",overflow:"hidden"}}><div style={{height:"100%",borderRadius:3,background:totR>=totP?"#10b981":"#818cf8",width:Math.min(100,Math.round(totR/totP*100))+"%"}}/></div>}
+    {totP>0&&<div style={{fontSize:10,color:"var(--dim)",marginTop:3,textAlign:"right"}}>{Math.round(totR/totP*100)}% realizat</div>}
+  </div>;
+};
+
+// Client detail
+const CDet=({c})=>{
+  const g=gA(c.agentId);const g2=c.agentId2?gA(c.agentId2):null;const s=sI(c.stage);
+  const ca=ac.filter(a=>a.clientId===c.id).sort((a,b)=>b.date.localeCompare(a.date));
+  const cOff=of.filter(o=>o.clientId===c.id);
+  const ph=c.phone?String(c.phone).replace(/\s/g,""):"";
+  return<div>
+    <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:14}}>
+      <div className="av" style={{background:(g?g.color:"#6366f1"),width:48,height:48,fontSize:16}}>{mkA(c.name||c.company)}</div>
+      <div style={{flex:1}}><div style={{fontSize:17,fontWeight:700}}>{c.company}</div><div style={{fontSize:13,color:"var(--muted)"}}>{c.name}{c.cui&&<span className="M" style={{marginLeft:6}}>{c.cui}</span>}</div></div>
+    </div>
+    <span className={"badge "+s.b} style={{marginBottom:14,display:"inline-block"}}>{s.i} {s.l}</span>
+    <div className="dg">
+      {[["📞",c.phone||"—"],["📧",c.email||"—"],["📍",c.zone||"—"],["💰",fmt(c.value)],["👤",(g?g.name:"")||"—"],["👥",g2?g2.name:"—","Agent 2"],["📥",c.source||"—"]].map(([i,v,lbl],k)=><div key={k} className="dc"><div className="fl">{i}{lbl?" "+lbl:""}</div><div style={{fontSize:13}}>{v}</div></div>)}
+    </div>
+    {c.notes&&<div style={{background:"var(--bg2)",borderRadius:10,padding:12,fontSize:13,color:"#94a3b8",marginBottom:14}}>{c.notes}</div>}
+    <MoTable c={c}/>
+    <div className="acts">
+      {ph&&<a href={"tel:"+ph} className="ab" style={{color:"var(--green)"}}><span style={{fontSize:20}}>📞</span>Sună</a>}
+      <div className="ab" onClick={()=>sMd({t:"na",d:{clientId:c.id,agentId:c.agentId||"",type:"vizita",date:td,time:nwT(),duration:60,status:"planificat",result:"",notes:""}})}><span style={{fontSize:20}}>📅</span>Vizită</div>
+      <div className="ab" onClick={()=>sMd({t:"no",d:{clientId:c.id,agentId:isAgt?myAId:c.agentId||"",status:"draft",validUntil:"",items:[{desc:"",qty:1,price:0}],discount:0,notes:""}})}><span style={{fontSize:20}}>📄</span>Ofertă</div>
+      {(isAdm||c.agentId===myAId||!c.agentId)&&<div className="ab" onClick={()=>sMd({t:"ec",d:c})}><span style={{fontSize:20}}>✏️</span>Editează</div>}
+      {isAdm&&<div className="ab" style={{color:"var(--red)"}} onClick={()=>sCf({msg:"Ștergi "+c.company+"?",ok:()=>delC(c.id)})}><span style={{fontSize:20}}>🗑</span>Șterge</div>}
+    </div>
+    <div className="stitle">Mutare etapă</div>
+    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
+      {ST.map(x=><button key={x.id} className={"btn btn-s "+(x.id===c.stage?"btn-p":"btn-g")} onClick={()=>{if(x.id!==c.stage)mvS(c.id,x.id)}}>{x.i} {x.l}</button>)}
+    </div>
+    {cOff.length>0&&<div style={{marginBottom:14}}>
+      <div className="stitle">📄 Oferte ({cOff.length})</div>
+      {cOff.map(o=><div key={o.id} onClick={()=>sMd({t:"eo",d:o})} style={{display:"flex",gap:10,padding:"8px 12px",marginBottom:4,background:o.status==="acceptat"?"rgba(16,185,129,.06)":"var(--bg2)",borderRadius:8,border:"1px solid var(--border)",alignItems:"center"}}>
+        <div style={{flex:1}}><span style={{fontSize:12,fontWeight:600}}>{o.status}</span><span className="M" style={{marginLeft:6,fontSize:11,color:"var(--dim)"}}>{fmtD(o.date||"")}</span></div>
+        <div className="M" style={{fontSize:13,fontWeight:700,color:"#10b981"}}>{fmt(oTotal(o))}</div>
+      </div>)}
+    </div>}
+    {ca.length>0&&<div style={{marginBottom:14}}>
+      <div className="stitle">📅 Activități ({ca.length})</div>
+      {(()=>{
+        const pl=ca.filter(a=>a.status==="planificat"||a.status==="in_desfasurare");
+        const dn=ca.filter(a=>a.status==="finalizat");
+        return<div>
+          {pl.length>0&&<>{pl.map(a=>{const late=a.date<td;const ty=TY.find(t=>t.id===a.type)||TY[0];return<div key={a.id} onClick={()=>sMd({t:"ea",d:a})} style={{display:"flex",gap:10,padding:"10px 12px",marginBottom:6,background:late?"rgba(239,68,68,.06)":"rgba(99,102,241,.06)",borderRadius:10,border:late?"1px solid rgba(239,68,68,.2)":"1px solid rgba(99,102,241,.15)",alignItems:"center"}}>
+            <div style={{fontSize:22}}>{ty.i}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:"flex",gap:4,alignItems:"center",flexWrap:"wrap"}}><span style={{fontSize:13,fontWeight:700,color:late?"#f87171":"var(--text)"}}>{ty.l}</span>{late&&<span style={{fontSize:9,color:"#f87171",fontWeight:700,background:"rgba(239,68,68,.12)",padding:"1px 5px",borderRadius:4}}>RESTANTĂ</span>}</div>
+              <div style={{fontSize:12,color:"var(--muted)"}}>{fmtD(a.date)} la {a.time} · {a.duration} min</div>
+              {a.createdAt&&<div style={{fontSize:10,color:"var(--dim)"}}>📝 {fmtTs(a.createdAt)}</div>}
+              {a.notes&&<div style={{fontSize:11,color:"#94a3b8",marginTop:1}}>{a.notes}</div>}
+            </div>
+            <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}} style={{padding:"4px 8px",fontSize:11}}>✓</button>
+          </div>})}</>}
+          {dn.length>0&&<div style={{marginTop:pl.length>0?8:0}}>{dn.slice(0,6).map(a=>{const ty=TY.find(t=>t.id===a.type)||TY[0];return<div key={a.id} onClick={()=>sMd({t:"ea",d:a})} style={{display:"flex",gap:10,padding:"8px 12px",marginBottom:4,background:"rgba(16,185,129,.04)",borderRadius:8,border:"1px solid rgba(16,185,129,.1)",alignItems:"center"}}>
+            <div style={{fontSize:16}}>{ty.i}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:12,fontWeight:600}}>{ty.l} <span style={{fontWeight:400,color:"var(--dim)"}}>{fmtD(a.date)}</span> <span>{a.result==="pozitiv"?"✅":a.result==="negativ"?"❌":"⚪"}</span>{a.createdAt&&<span style={{fontSize:9,color:"var(--dim)"}}> · 📝{fmtTs(a.createdAt)}</span>}</div>
+              {a.notes&&<div style={{fontSize:11,color:"#94a3b8"}}>{a.notes}</div>}
+            </div>
+          </div>})}{dn.length>6&&<div style={{fontSize:11,color:"var(--dim)",textAlign:"center"}}>+{dn.length-6} mai vechi</div>}</div>}
+        </div>;
+      })()}
+    </div>}
+    {ca.length===0&&<div style={{background:"var(--bg2)",borderRadius:10,padding:16,textAlign:"center",marginBottom:14}}>
+      <div style={{fontSize:13,color:"var(--dim)"}}>Nicio activitate</div>
+    </div>}
+  </div>;
+};
+
+const renderMd=()=>{
+  if(!md)return null;
+  const T={nc:"Client Nou",ec:"Editează",vc:"Client",na:"Activitate Nouă",ea:"Activitate",no:"Ofertă Nouă",eo:"Editează Ofertă",nag:"Agent Nou",eag:"Editează Agent"};
+  let ct=null;
+  if(md.t==="nc"||md.t==="ec")ct=<CForm data={md.d}/>;
+  else if(md.t==="vc")ct=<CDet c={md.d}/>;
+  else if(md.t==="na"||md.t==="ea")ct=<AForm data={md.d}/>;
+  else if(md.t==="no"||md.t==="eo")ct=<OForm data={md.d}/>;
+  else if(md.t==="nag"||md.t==="eag")ct=<AgForm data={md.d}/>;
+  return<div className="overlay" onClick={e=>{if(e.target===e.currentTarget){if(moRef.current){const _mId=moRef.current.cId,_mD=moRef.current.data;sb.from('st_clients').update({monthly:_mD}).eq('id',_mId);sCl(p=>p.map(x=>x.id===_mId?{...x,monthly:_mD}:x));}sMd(null)}}}>
+    <div className="sheet"><div className="sheet-t"><span>{T[md.t]||""}</span><button className="sheet-x" onClick={()=>{if(moRef.current){const _mId=moRef.current.cId,_mD=moRef.current.data;sb.from('st_clients').update({monthly:_mD}).eq('id',_mId);sCl(p=>p.map(x=>x.id===_mId?{...x,monthly:_mD}:x));}sMd(null)}}>✕</button></div>{ct}</div>
+  </div>;
+};
+
+
+const NAV=[["home","🏠","Acasă"],["clients","👥","Clienți"],["acts","📅","Activități"],["offers","📄","Oferte"],["more","⚙️","Mai mult"]];
+const NAV2=isAdm?[["home","🏠","Acasă"],["clients","👥","Clienți"],["pipe","📊","Pipeline"],["acts","📅","Activități"],["offers","📄","Oferte"],["followup","📞","Follow-up"],["reports","📈","Rapoarte"],["more","⚙️","Setări"]]:NAV;
+
+if(!sbRdy) return<MobLoading/>;
+if(!curUser) return<MobLogin/>;
+const pgTitle={home:"Dashboard",clients:"Clienți",pipe:"Pipeline",acts:"Activități",offers:"Oferte",followup:"Follow-up",reports:"Rapoarte",more:"Setări"};
+return<div className="app">
+  <div className="hdr">
+    <div className="hdr-title" style={{fontSize:18,fontWeight:700,flex:1}}>{pgTitle[pg]||"SalesTrack"}</div>
+    {(pg==="clients"||pg==="acts"||pg==="offers")&&<input className="srch hdr-search" placeholder="Caută clienți, companii, agenți..." value={sr} onChange={e=>sSr(e.target.value)} key="app-search" style={{margin:0}}/>}
+    {dsk&&<div style={{fontSize:12,color:"#64748b",fontFamily:"'JetBrains Mono',monospace"}}>{new Date().toLocaleDateString("ro-RO",{weekday:"short",day:"numeric",month:"short"})}</div>}
+    {!dsk&&<div className="hdr-user" style={{display:"flex",alignItems:"center",gap:10}}>
+      <div style={{width:32,height:32,borderRadius:8,background:isAdm?"linear-gradient(135deg,#6366f1,#8b5cf6)":ag.find(x=>x.id===myAId)?.color||"#059669",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:800,color:"white"}}>{isAdm?"S":mkA(curUser.name)}</div>
+      <button onClick={doMLogout} style={{background:"none",border:"none",fontSize:16,cursor:"pointer",padding:4,color:"var(--dim)"}}>🚪</button>
+    </div>}
+  </div>
+  <div className="body">
+    {(pg==="clients"||pg==="acts"||pg==="offers")&&<input className="srch mob-search" placeholder={"🔍 Caută..."} value={sr} onChange={e=>sSr(e.target.value)} key="mob-search"/>}
+    <div style={{display:pg==="home"?"block":"none"}}><Home/></div>
+    <div style={{display:pg==="clients"?"block":"none"}}><Clients/></div>
+    <div style={{display:pg==="acts"?"block":"none"}}><Acts/></div>
+    <div style={{display:pg==="offers"?"block":"none"}}><Offers/></div>
+    <div style={{display:pg==="pipe"?"block":"none"}}><Pipe/></div>
+    <div style={{display:pg==="followup"?"block":"none"}}><FollowUp/></div>
+    <div style={{display:pg==="reports"?"block":"none"}}><Reports/></div>
+    <div style={{display:pg==="more"?"block":"none"}}><More/></div>
+  </div>
+  {!dsk&&<div className="fab" onClick={()=>{if(pg==="clients")sMd({t:"nc"});else if(pg==="offers")sMd({t:"no"});else if(pg==="followup")sMd({t:"na",d:{type:"telefon",status:"planificat",date:td,time:nwT(),duration:15,clientId:cl[0]?.id,agentId:isAgt?myAId:ag[0]?.id,result:"",notes:""}});else sMd({t:"na"})}}>+</div>}
+  <div className="nav">
+    {dsk&&<div style={{padding:20,display:"flex",alignItems:"center",gap:12,borderBottom:"1px solid var(--border)"}}>
+      <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:800,color:"white",flexShrink:0}}>S</div>
+      <div><div style={{fontSize:15,fontWeight:700}}>SalesTrack</div><div style={{fontSize:10,color:"var(--accent)",fontFamily:"'JetBrains Mono',monospace"}}>CRM PRO</div></div>
+    </div>}
+    {dsk&&<div style={{fontSize:10,color:"var(--dim)",textTransform:"uppercase",letterSpacing:1,padding:"16px 14px 6px",fontWeight:600}}>General</div>}
+    {NAV2.map(n=><div key={n[0]} className={"ni"+(pg===n[0]?" on":"")} onClick={()=>{sPg(n[0]);sSr("")}}><span className="ni-i">{n[1]}</span>{n[2]}</div>)}
+    {dsk&&<div className="side-user">
+      <div className="side-user-av" style={{background:isAdm?"#6366f1":"#059669"}}>{isAdm?"A":mkA(curUser.name)}</div>
+      <div className="side-user-info"><div className="side-user-name">{curUser.name}</div><div className="side-user-role">{isAdm?"Administrator":"Agent"}</div></div>
+      <button onClick={doMLogout} title="Deconectare" style={{background:"none",border:"none",cursor:"pointer",fontSize:16,color:"var(--dim)",padding:4}}>🚪</button>
+    </div>}
+  </div>
+  {renderMd()}
+  {cf&&<div className="cfrm"><div className="cbox"><div style={{fontSize:24}}>⚠️</div><p>{cf.msg}</p><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn btn-g" onClick={()=>sCf(null)}>Nu</button><button className="btn btn-d" onClick={cf.ok}>Da</button></div></div></div>}
+  {ts&&<div className="toast">{ts}</div>}
+</div>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App/></ErrorBoundary>);;
+</script>
+</body>
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){r.unregister()})});
+  caches.keys().then(function(names){names.forEach(function(n){caches.delete(n)})});
+}
+</script>
+</html>
