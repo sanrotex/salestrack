@@ -661,20 +661,32 @@ const Offers=()=>{
       <td className="M" style={{fontSize:11,color:"#94a3b8"}}>{fmtD(o.date||"")}</td>
       <td className="M" style={{fontSize:11,color:exp?"#f87171":"#94a3b8"}}>{fmtD(o.validUntil||"")}</td>
       <td className="M" style={{fontWeight:600,color:"#10b981"}}>{fmt(tot)}</td>
-      <td onClick={e=>e.stopPropagation()}><button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:11}} onClick={()=>sPdfTgt({clientId:o.clientId,offerId:o.id,agentId:isAgt?myAId:o.agentId})} title="Atașează PDF ofertă">📎{(()=>{const n=att.filter(a=>a.offerId===o.id).length;return n>0?<span className="M" style={{fontSize:10,marginLeft:2,color:"#f87171"}}>{n}</span>:null})()}</button></td>
+      <td onClick={e=>e.stopPropagation()}>{(()=>{const pdfs=att.filter(a=>a.offerId===o.id);return<div style={{display:"flex",gap:3}}>
+        {pdfs.length>0&&<button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:11}} onClick={()=>viewPdf(pdfs[0])} title={"Vizualizează "+pdfs[0].fileName}>👁</button>}
+        {pdfs.length>0&&<button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:11}} onClick={()=>downloadPdf(pdfs[0])} title="Descarcă PDF">⬇️</button>}
+        <button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:11}} onClick={()=>sPdfTgt({clientId:o.clientId,offerId:o.id,agentId:isAgt?myAId:o.agentId})} title="Atașează PDF">📎{pdfs.length>0?<span className="M" style={{fontSize:10,marginLeft:2,color:"#34d399"}}>{pdfs.length}</span>:null}</button>
+      </div>})()}</td>
     </tr>})}</tbody></table>
     {fl.length===0&&<div style={{padding:40,textAlign:"center",color:"#475569"}}>Nicio ofertă</div>}
     </div>
     :fl.map(o=>{const cc=gC(o.clientId);const gg=gA(o.agentId);const tot=oTotal(o);const exp=o.status==="trimis"&&o.validUntil&&o.validUntil<td;
+    const oPdfs=att.filter(a=>a.offerId===o.id);
     return<div key={o.id} className="li" style={{padding:12,borderLeft:o.status==="acceptat"?"3px solid #10b981":o.status==="respins"?"3px solid #ef4444":o.status==="trimis"?"3px solid #06b6d4":"3px solid #64748b"}} onClick={()=>sMd({t:"eo",d:o})}>
       <div style={{flex:1,minWidth:0}}>
         <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
           <span style={{fontSize:13,fontWeight:700}}>{cc?.company||"—"}</span>
           <span className={"badge "+(o.status==="acceptat"?"bgr":o.status==="respins"?"br":o.status==="trimis"?"bc":"bg")}>{o.status}{exp?" ⚠️":""}</span>
+          {oPdfs.length>0&&<span style={{fontSize:11,color:"#34d399"}}>📎 {oPdfs.length}</span>}
         </div>
-        <div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>{(o.items||[]).length} produse · {fmtD(o.date||"")}{gg?" · "+gg.name:""}</div>
+        <div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>{fmtD(o.date||"")}{gg?" · "+gg.name:""}{oPdfs.length>0?" · "+oPdfs[0].fileName:""}</div>
       </div>
-      <div className="M" style={{fontSize:14,fontWeight:700,color:"#10b981"}}>{fmt(tot)}</div>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4}}>
+        <div className="M" style={{fontSize:14,fontWeight:700,color:"#10b981"}}>{fmt(tot)}</div>
+        {oPdfs.length>0&&<div style={{display:"flex",gap:3}} onClick={e=>e.stopPropagation()}>
+          <button className="btn btn-s btn-g" style={{padding:"3px 6px",fontSize:10}} onClick={()=>viewPdf(oPdfs[0])}>👁</button>
+          <button className="btn btn-s btn-g" style={{padding:"3px 6px",fontSize:10}} onClick={()=>downloadPdf(oPdfs[0])}>⬇️</button>
+        </div>}
+      </div>
     </div>})}
     {!dsk&&fl.length===0&&<div style={{padding:30,textAlign:"center",color:"var(--dim)"}}>Nicio ofertă</div>}
   </div>;
