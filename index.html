@@ -114,7 +114,7 @@ button:active{transform:scale(0.96)}
     display:flex;align-items:center;gap:16px
   }
   .hdr-title{display:block!important}
-  .hdr-search{width:280px;flex-shrink:0}
+  .hdr-search{display:block!important;width:280px;flex-shrink:0}
   .hdr-uname{display:block}
 
   /* ── Content ── */
@@ -571,7 +571,31 @@ const OForm=({data:init})=>{
     <div className="fr"><div className="fi"><label className="fl">Discount %</label><input type="number" value={f.discount} onChange={e=>u("discount",+e.target.value)} min={0} max={100}/></div>
     <div className="fi"><label className="fl">Total</label><div className="M" style={{fontSize:18,fontWeight:700,color:"#10b981",padding:"6px 0"}}>{fmt(tot)}</div></div></div>
     <div className="fi"><label className="fl">Notițe</label><textarea value={f.notes} onChange={e=>u("notes",e.target.value)} rows={2}/></div>
-    <button className="btn btn-p btn-f" style={{marginTop:8}} onClick={()=>{if(!f.clientId)return show("⚠️ Alege client");savO({...init,...f},!!(init&&init.id))}}>💾 {(init&&init.id)?"Salvează":"Creează Ofertă"}</button>
+    <div style={{display:"flex",gap:8,marginTop:8}}>
+      <button className="btn btn-p" style={{flex:1}} onClick={()=>{if(!f.clientId)return show("⚠️ Alege client");savO({...init,...f},!!(init&&init.id))}}>💾 {(init&&init.id)?"Salvează":"Creează Ofertă"}</button>
+      <button className="btn btn-g" onClick={()=>{
+        const cc=cl.find(x=>x.id===f.clientId);const gg=gA(f.agentId);
+        const sub=(f.items||[]).reduce((s,it)=>s+(it.qty||1)*(it.price||0),0);
+        const disc=f.discount||0;const total=sub*(1-disc/100);
+        const w=window.open("","_blank");if(!w)return;
+        w.document.write('<html><head><title>Ofertă '+(cc?.company||"")+'</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#111;max-width:800px;margin:0 auto}h1{font-size:22px;color:#333;border-bottom:2px solid #6366f1;padding-bottom:8px}table{width:100%;border-collapse:collapse;margin:20px 0}th{background:#f1f5f9;text-align:left;padding:10px;font-size:12px;border-bottom:2px solid #e2e8f0}td{padding:10px;border-bottom:1px solid #e2e8f0;font-size:13px}.right{text-align:right}.total{font-size:18px;font-weight:700;color:#10b981}.meta{color:#64748b;font-size:12px;margin-bottom:20px}@media print{body{padding:20px}}</style></head><body>'+
+        '<h1>OFERTĂ — SANROTEX TRADING SRL</h1>'+
+        '<div class="meta"><b>Client:</b> '+(cc?.company||"—")+' ('+(cc?.name||"")+')'+
+        (cc?.cui?' &middot; CUI: '+cc.cui:'')+
+        '<br><b>Agent:</b> '+(gg?.name||"—")+
+        '<br><b>Data:</b> '+fmtD(f.date||td)+
+        (f.validUntil?' &middot; <b>Valabil până:</b> '+fmtD(f.validUntil):'')+
+        '<br><b>Status:</b> '+f.status+'</div>'+
+        '<table><thead><tr><th>#</th><th>Descriere</th><th class="right">Cant.</th><th class="right">Preț unit.</th><th class="right">Subtotal</th></tr></thead><tbody>'+
+        (f.items||[]).map((it,i)=>'<tr><td>'+(i+1)+'</td><td>'+it.desc+'</td><td class="right">'+it.qty+'</td><td class="right">'+Number(it.price).toLocaleString("ro-RO")+' RON</td><td class="right">'+Number(it.qty*it.price).toLocaleString("ro-RO")+' RON</td></tr>').join('')+
+        '</tbody></table>'+
+        (disc>0?'<div style="text-align:right;font-size:13px;color:#64748b">Subtotal: '+Number(sub).toLocaleString("ro-RO")+' RON &middot; Discount: '+disc+'%</div>':'')+
+        '<div style="text-align:right;margin-top:10px"><span class="total">TOTAL: '+Number(total).toLocaleString("ro-RO")+' RON</span></div>'+
+        (f.notes?'<div style="margin-top:20px;padding:12px;background:#f8fafc;border-radius:8px;font-size:12px;color:#475569"><b>Notițe:</b> '+f.notes+'</div>':'')+
+        '<div style="margin-top:40px;font-size:11px;color:#94a3b8;text-align:center">Generat din SalesTrack CRM &middot; SANROTEX TRADING SRL</div>'+
+        '</body></html>');w.document.close();
+      }} title="Previzualizare ofertă">👁 Preview</button>
+    </div>
   </div>;
 };
 
@@ -660,8 +684,8 @@ const Offers=()=>{
 const Home=()=>{
   const mAc=isAgt?ac.filter(a=>a.agentId===myAId):ac;
   const srF=a=>{if(!sr)return true;const c=gC(a.clientId);return((c?c.company+" "+c.name:"")+" "+a.notes).toLowerCase().includes(sr.toLowerCase())};
-  const up=mAc.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td).filter(srF).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)).slice(0,10);
-  const ov=ac.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td).filter(srF);
+  const up=mAc.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td).filter(srF).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  const ov=mAc.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td).filter(srF);
   return<div>
     <div className="kpis">
       <div className="kpi" onClick={()=>sPg("clients")}><b className="M" style={{color:"#818cf8"}}>{stats.tot}</b><small>Clienți</small></div>
@@ -672,7 +696,7 @@ const Home=()=>{
       {isAdm&&<div className="kpi" onClick={()=>sPg("followup")}><b className="M" style={{color:stats.ov>0?"#f87171":"#10b981"}}>{stats.ov}</b><small>Follow-up</small></div>}
     </div>
     {ov.length>0&&<><div className="stitle" style={{color:"#f87171"}}>🔴 Restante ({ov.length})</div>
-      {ov.slice(0,4).map(a=>{const c=gC(a.clientId);return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})}>
+      {ov.map(a=>{const c=gC(a.clientId);return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})}>
         <span style={{fontSize:20}}>{tI(a.type)}</span>
         <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{fmtD(a.date)} · {a.notes}</div></div>
         <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>
