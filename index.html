@@ -659,8 +659,9 @@ const Offers=()=>{
 // ═══ PAGES ═══
 const Home=()=>{
   const mAc=isAgt?ac.filter(a=>a.agentId===myAId):ac;
-const up=mAc.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)).slice(0,10);
-  const ov=ac.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td);
+  const srF=a=>{if(!sr)return true;const c=gC(a.clientId);return((c?c.company+" "+c.name:"")+" "+a.notes).toLowerCase().includes(sr.toLowerCase())};
+  const up=mAc.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td).filter(srF).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)).slice(0,10);
+  const ov=ac.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td).filter(srF);
   return<div>
     <div className="kpis">
       <div className="kpi" onClick={()=>sPg("clients")}><b className="M" style={{color:"#818cf8"}}>{stats.tot}</b><small>Clienți</small></div>
@@ -820,7 +821,8 @@ const Acts=()=>{
 
 const Pipe=()=>{
   const [tab,sTab]=useState("lead");
-  const pipeData=ST.map(s=>({...s,clients:cl.filter(c=>c.stage===s.id).sort((a,b)=>b.value-a.value),total:cl.filter(c=>c.stage===s.id).reduce((sum,c)=>sum+c.value,0)}));
+  const fCl=sr?cl.filter(c=>(c.company+" "+c.name+" "+(c.cui||"")+" "+c.zone).toLowerCase().includes(sr.toLowerCase())):cl;
+  const pipeData=ST.map(s=>({...s,clients:fCl.filter(c=>c.stage===s.id).sort((a,b)=>b.value-a.value),total:fCl.filter(c=>c.stage===s.id).reduce((sum,c)=>sum+c.value,0)}));
   if(dsk){
     const pipeTot=pipeData.slice(0,4).reduce((s,p)=>s+p.total,0);
     return<div>
@@ -845,7 +847,7 @@ const Pipe=()=>{
       </div>)}</div>
     </div>;
   }
-  const s=sI(tab);const list=cl.filter(c=>c.stage===tab).sort((a,b)=>b.value-a.value);
+  const s=sI(tab);const list=fCl.filter(c=>c.stage===tab).sort((a,b)=>b.value-a.value);
   const tot=list.reduce((s,c)=>s+c.value,0);
   return<div>
     <div className="tabs">{ST.map(x=>{const n=cl.filter(c=>c.stage===x.id).length;return<div key={x.id} className={"tab"+(tab===x.id?" on":"")} onClick={()=>sTab(x.id)}>{x.i}{n>0?" "+n:""}</div>})}</div>
@@ -861,11 +863,13 @@ const Pipe=()=>{
 
 const FollowUp=()=>{
   const fActs=isAgt?ac.filter(a=>a.agentId===myAId):ac;
-  const calls=fActs.filter(a=>a.type==="telefon"&&a.status==="planificat").sort((a,b)=>a.date.localeCompare(b.date));
+  const srM=a=>{if(!sr)return true;const c=gC(a.clientId);return((c?c.company+" "+c.name:"")+" "+a.notes).toLowerCase().includes(sr.toLowerCase())};
+  const srC=c=>{if(!sr)return true;return(c.company+" "+c.name+" "+(c.cui||"")).toLowerCase().includes(sr.toLowerCase())};
+  const calls=fActs.filter(a=>a.type==="telefon"&&a.status==="planificat").filter(srM).sort((a,b)=>a.date.localeCompare(b.date));
   const overCalls=calls.filter(a=>a.date<td);
   const upCalls=calls.filter(a=>a.date>=td);
-  const fCl=isAgt?cl.filter(c=>c.agentId===myAId||c.agentId2===myAId):cl;
-  const stale=fCl.filter(c=>c.stage!=="pierdut"&&c.stage!=="castigat").filter(c=>{if(!c.lastContact)return true;return(new Date(td)-new Date(c.lastContact))/(86400000)>=14;});
+  const fuCl=isAgt?cl.filter(c=>c.agentId===myAId||c.agentId2===myAId):cl;
+  const stale=fuCl.filter(c=>c.stage!=="pierdut"&&c.stage!=="castigat").filter(c=>{if(!c.lastContact)return true;return(new Date(td)-new Date(c.lastContact))/(86400000)>=14;}).filter(srC);
   return<div>
     <button className="btn btn-p btn-f" style={{marginBottom:12}} onClick={()=>sMd({t:"na",d:{type:"telefon",status:"planificat",date:td,time:nwT(),duration:15,clientId:cl[0]?.id,agentId:isAgt?myAId:ag[0]?.id,result:"",notes:""}})}>+ Programează Apel</button>
     {overCalls.length>0&&<><div className="stitle" style={{color:"#f87171"}}>🔴 Apeluri Restante ({overCalls.length})</div>
@@ -904,7 +908,7 @@ const Reports=()=>{
   };
   const rpAc=ac.filter(a=>a.date>=rpF&&a.date<=rpT);
   const rpOf=of.filter(o=>o.date>=rpF&&o.date<=rpT);
-  const agR=ag.filter(a=>a.status==="activ").map(x=>{
+  const agR=ag.filter(a=>a.status==="activ").filter(a=>!sr||a.name.toLowerCase().includes(sr.toLowerCase())||a.zone.toLowerCase().includes(sr.toLowerCase())).map(x=>{
     const aA=rpAc.filter(a=>a.agentId===x.id);const aO=rpOf.filter(o=>o.agentId===x.id);
     const byT={};TY.forEach(t=>{byT[t.id]={n:aA.filter(a=>a.type===t.id).length,d:aA.filter(a=>a.type===t.id&&a.status==="finalizat").length}});
     const dn=aA.filter(a=>a.status==="finalizat").length;const pl=aA.filter(a=>a.status==="planificat"||a.status==="in_desfasurare").length;
@@ -1139,7 +1143,7 @@ const pgTitle={home:"Dashboard",clients:"Clienți",pipe:"Pipeline",acts:"Activit
 return<div className="app">
   <div className="hdr">
     <div className="hdr-title" style={{fontSize:18,fontWeight:700,flex:1}}>{pgTitle[pg]||"SalesTrack"}</div>
-    {(pg==="clients"||pg==="acts"||pg==="offers")&&<input className="srch hdr-search" placeholder="Caută clienți, companii, agenți..." value={sr} onChange={e=>sSr(e.target.value)} key="app-search" style={{margin:0}}/>}
+    <input className="srch hdr-search" placeholder="Caută clienți, companii, agenți..." value={sr} onChange={e=>sSr(e.target.value)} key="app-search" style={{margin:0}}/>
     {dsk&&<div style={{fontSize:12,color:"#64748b",fontFamily:"'JetBrains Mono',monospace"}}>{new Date().toLocaleDateString("ro-RO",{weekday:"short",day:"numeric",month:"short"})}</div>}
     {!dsk&&<div className="hdr-user" style={{display:"flex",alignItems:"center",gap:10}}>
       <div style={{width:32,height:32,borderRadius:8,background:isAdm?"linear-gradient(135deg,#6366f1,#8b5cf6)":ag.find(x=>x.id===myAId)?.color||"#059669",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:800,color:"white"}}>{isAdm?"S":mkA(curUser.name)}</div>
@@ -1147,7 +1151,7 @@ return<div className="app">
     </div>}
   </div>
   <div className="body">
-    {(pg==="clients"||pg==="acts"||pg==="offers")&&<input className="srch mob-search" placeholder={"🔍 Caută..."} value={sr} onChange={e=>sSr(e.target.value)} key="mob-search"/>}
+    <input className="srch mob-search" placeholder={"🔍 Caută..."} value={sr} onChange={e=>sSr(e.target.value)} key="mob-search"/>
     <div style={{display:pg==="home"?"block":"none"}}><Home/></div>
     <div style={{display:pg==="clients"?"block":"none"}}><Clients/></div>
     <div style={{display:pg==="acts"?"block":"none"}}><Acts/></div>
