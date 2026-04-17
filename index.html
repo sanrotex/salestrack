@@ -391,6 +391,10 @@ const savA=async(d,e)=>{const rec=e?d:{...d,id:uid(),createdAt:new Date().toISOS
 const finA=a=>savA({...a,status:"finalizat",result:a.result||"neutru"},true);
 const oTotal=o=>{const sub=(o.items||[]).reduce((s,it)=>s+(it.qty||1)*(it.price||0),0);return sub*(1-(o.discount||0)/100);};
 const savO=async(d,e)=>{const rec=e?d:{...d,id:uid(),date:td};const{error}=await sb.from('st_offers').upsert(toDb(rec));if(error){show("❌ "+error.message);return;}if(e)sOf(p=>p.map(o=>o.id===rec.id?rec:o));else sOf(p=>[rec,...p]);show(e?"✅ Ofertă salvată":"✅ Ofertă creată");sMd(null)};
+const delA=async id=>{const{error}=await sb.from('st_activities').delete().eq('id',id);if(error){show("❌ "+error.message);return;}sAc(p=>p.filter(a=>a.id!==id));show("🗑 Activitate ștearsă");sCf(null);sMd(null)};
+const delO=async id=>{const{error}=await sb.from('st_offers').delete().eq('id',id);if(error){show("❌ "+error.message);return;}sOf(p=>p.filter(o=>o.id!==id));sAtt(p=>p.filter(a=>a.offerId!==id));show("🗑 Ofertă ștearsă");sCf(null);sMd(null)};
+const dupO=o=>{const cc=gC(o.clientId);sMd({t:"no",d:{clientId:o.clientId,agentId:o.agentId,status:"draft",validUntil:"",items:[...(o.items||[]).map(it=>({...it}))],discount:o.discount||0,notes:(o.notes||"")+" (copie)"}});show("📋 Duplicat — "+(cc?.company||""))};
+const expCsv=(rows,name)=>{const hdr=["Client","Agent","Tip","Data","Ora","Durata","Status","Rezultat","Note"];const lines=[hdr.join(","),...rows.map(a=>{const c=gC(a.clientId);const g=gA(a.agentId);return['"'+(c?.company||"").replace(/"/g,'""')+'"','"'+(g?.name||"").replace(/"/g,'""')+'"',a.type||"",a.date||"",a.time||"",a.duration||"",a.status||"",a.result||"",'"'+(a.notes||"").replace(/"/g,'""')+'"'].join(",")})];const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const lnk=document.createElement("a");lnk.href=url;lnk.download=name+".csv";document.body.appendChild(lnk);lnk.click();document.body.removeChild(lnk);URL.revokeObjectURL(url)};
 const COLS=["#059669","#7c3aed","#0891b2","#e11d48","#ea580c","#65a30d","#0284c7","#9333ea"];
 const savAg=async(d,e)=>{if(!isAdm){show("⚠️ Doar admin");return;}const rec=e?{...d,color:d.color||COLS[0]}:{...d,id:uid(),color:COLS[ag.length%COLS.length]};const{error}=await sb.from('st_agents').upsert(toDb(rec));if(error){show("❌ "+error.message);return;}if(e)sAg(p=>p.map(a=>a.id===rec.id?rec:a));else sAg(p=>[...p,rec]);show(e?"✅ Agent salvat":"✅ Agent adăugat");sMd(null)};
 const delAg=async id=>{if(!isAdm){show("⚠️ Doar admin");return;}const{error}=await sb.from('st_agents').delete().eq('id',id);if(error){show("❌ "+error.message);return;}sAg(p=>p.filter(a=>a.id!==id));const fallback=ag.find(a=>a.id!==id)?.id||null;await sb.from('st_clients').update({agent_id:fallback}).eq('agent_id',id);sCl(p=>p.map(c2=>c2.agentId===id?{...c2,agentId:fallback}:c2));show("🗑 Agent șters");sCf(null);sMd(null)};
@@ -489,8 +493,9 @@ const stats=useMemo(()=>{
   const ta=mA.filter(a=>a.date===td);
   const mOf=isAgt?of.filter(o=>o.agentId===myAId||cl.some(x=>x.id===o.clientId&&(x.agentId===myAId||x.agentId2===myAId))):of;
   const aOf=mOf.filter(o=>o.status==="trimis").length;
-  return{tot:cl.length,pv,wv,pl:pl.length,ov:ov.length,ta:ta.length,aOf};
-},[cl,ac,myAId]);
+  const mCl=isAgt?cl.filter(c=>c.agentId===myAId||c.agentId2===myAId):cl;
+  return{tot:cl.length,mCl:mCl.length,pv,wv,pl:pl.length,ov:ov.length,ta:ta.length,aOf,tAc:mA.length,tOf:mOf.length};
+},[cl,ac,of,myAId]);
 
 // ═══ FORMS ═══
 const CForm=({data:init})=>{
@@ -537,6 +542,7 @@ const AForm=({data:init})=>{
     <div className="fi"><label className="fl">Notițe</label><textarea value={f.notes} onChange={e=>u("notes",e.target.value)} rows={2}/></div>
     {init&&init.createdAt&&<div style={{fontSize:10,color:"var(--dim)",background:"var(--bg2)",borderRadius:6,padding:"5px 8px",marginTop:4}}>📝 Introdus: <span className="M">{fmtTs(init.createdAt)}</span></div>}
     <button className="btn btn-p btn-f" style={{marginTop:8}} onClick={()=>{if(!f.clientId)return show("⚠️ Alege client");savA({...init,...f},!!(init&&init.id))}}>💾 {(init&&init.id)?"Salvează":"Adaugă"}</button>
+    {init&&init.id&&<button className="btn btn-d btn-f" style={{marginTop:6}} onClick={()=>sCf({msg:"Ștergi această activitate?",ok:()=>delA(init.id)})}>🗑 Șterge Activitate</button>}
   </div>;
 };
 
@@ -596,6 +602,10 @@ const OForm=({data:init})=>{
         '</body></html>');w.document.close();
       }} title="Previzualizare ofertă">👁 Preview</button>
     </div>
+    {init&&init.id&&<div style={{display:"flex",gap:8,marginTop:6}}>
+      <button className="btn btn-g" style={{flex:1}} onClick={()=>dupO(init)}>📋 Duplică Ofertă</button>
+      <button className="btn btn-d" style={{flex:1}} onClick={()=>sCf({msg:"Ștergi această ofertă?",ok:()=>delO(init.id)})}>🗑 Șterge</button>
+    </div>}
   </div>;
 };
 
@@ -624,9 +634,9 @@ const Offers=()=>{
     let r=isAgt?of.filter(o=>o.agentId===myAId||cl.some(x=>x.id===o.clientId&&(x.agentId===myAId||x.agentId2===myAId))):of;
     if(fSt!=="all")r=r.filter(o=>o.status===fSt);
     if(isAdm&&fAg!=="all")r=r.filter(o=>o.agentId===fAg);
-    if(isAdm&&fCl!=="all")r=r.filter(o=>o.clientId===fCl);
-    if(isAdm&&fD1)r=r.filter(o=>(o.date||"")>=fD1);
-    if(isAdm&&fD2)r=r.filter(o=>(o.date||"")<=fD2);
+    if(fCl!=="all")r=r.filter(o=>o.clientId===fCl);
+    if(fD1)r=r.filter(o=>(o.date||"")>=fD1);
+    if(fD2)r=r.filter(o=>(o.date||"")<=fD2);
     if(sr)r=r.filter(o=>{const c2=gC(o.clientId);return((c2?c2.company:"")+" "+(c2?c2.name:"")).toLowerCase().includes(sr.toLowerCase())});
     return[...r].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
   },[of,fSt,fAg,fCl,fD1,fD2,sr,myAId,cl]);
@@ -635,12 +645,12 @@ const Offers=()=>{
     <div style={{display:"flex",gap:6,marginBottom:8,alignItems:"center",flexWrap:"wrap"}}>
       {dsk&&<button className="btn btn-s btn-p" onClick={()=>sMd({t:"no"})}>+ Ofertă Nouă</button>}
       <div className="tabs" style={{flex:1}}>{["all","draft","trimis","acceptat","respins"].map(s=><div key={s} className={"tab"+(fSt===s?" on":"")} onClick={()=>sFSt(s)}>{s==="all"?"Toate":s[0].toUpperCase()+s.slice(1)}</div>)}</div>
-      {isAdm&&<button className={"btn btn-s "+(showF||hasF?"btn-p":"btn-g")} style={{padding:"4px 10px",fontSize:11}} onClick={()=>sShowF(!showF)}>🔍{hasF?" ●":""}</button>}
+      <button className={"btn btn-s "+(showF||hasF?"btn-p":"btn-g")} style={{padding:"4px 10px",fontSize:11}} onClick={()=>sShowF(!showF)}>🔍{hasF?" ●":""}</button>
     </div>
-    {isAdm&&showF&&<div style={{background:"var(--bg2)",borderRadius:10,padding:12,marginBottom:10,border:"1px solid rgba(99,102,241,.2)"}}>
+    {showF&&<div style={{background:"var(--bg2)",borderRadius:10,padding:12,marginBottom:10,border:"1px solid rgba(99,102,241,.2)"}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Agent</div><select style={{fontSize:12,padding:"6px 8px"}} value={fAg} onChange={e=>sFAg(e.target.value)}><option value="all">Toți</option>{ag.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
-        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Client</div><select style={{fontSize:12,padding:"6px 8px"}} value={fCl} onChange={e=>sFCl(e.target.value)}><option value="all">Toți</option>{cl.map(x=><option key={x.id} value={x.id}>{x.company}</option>)}</select></div>
+        {isAdm&&<div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Agent</div><select style={{fontSize:12,padding:"6px 8px"}} value={fAg} onChange={e=>sFAg(e.target.value)}><option value="all">Toți</option>{ag.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></div>}
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Client</div><select style={{fontSize:12,padding:"6px 8px"}} value={fCl} onChange={e=>sFCl(e.target.value)}><option value="all">Toți</option>{(isAgt?cl.filter(x=>x.agentId===myAId||x.agentId2===myAId):cl).map(x=><option key={x.id} value={x.id}>{x.company}</option>)}</select></div>
         <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Data de la</div><DateIn value={fD1} onChange={v=>sFD1(v)} style={{fontSize:11,padding:"6px 8px",width:"100%"}}/></div>
         <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Data până</div><DateIn value={fD2} onChange={v=>sFD2(v)} style={{fontSize:11,padding:"6px 8px",width:"100%"}}/></div>
       </div>
@@ -651,7 +661,7 @@ const Offers=()=>{
       <div style={{flex:1}}/>
       <span className="M" style={{fontSize:13,fontWeight:700,color:"#10b981"}}>{fmt(totV)}</span>
     </div>
-    {dsk?<div className="tbl-wrap"><table className="tbl"><thead><tr><th>Client</th><th>Agent</th><th>Status</th><th>Produse</th><th>Data</th><th>Valabil până</th><th>Valoare</th><th>📎</th></tr></thead>
+    {dsk?<div className="tbl-wrap"><table className="tbl"><thead><tr><th>Client</th><th>Agent</th><th>Status</th><th>Produse</th><th>Data</th><th>Valabil până</th><th>Valoare</th><th>📎</th><th>Acțiuni</th></tr></thead>
     <tbody>{fl.map(o=>{const cc=gC(o.clientId);const gg=gA(o.agentId);const tot=oTotal(o);const exp=o.status==="trimis"&&o.validUntil&&o.validUntil<td;
     return<tr key={o.id} style={{cursor:"pointer",borderLeft:o.status==="acceptat"?"3px solid #10b981":o.status==="respins"?"3px solid #ef4444":o.status==="trimis"?"3px solid #06b6d4":"3px solid #64748b"}} onClick={()=>sMd({t:"eo",d:o})}>
       <td><div style={{fontWeight:600,fontSize:13}}>{cc?.company||"—"}</div><div style={{fontSize:11,color:"#64748b"}}>{cc?.name||""}</div></td>
@@ -666,6 +676,7 @@ const Offers=()=>{
         {pdfs.length>0&&<button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:11}} onClick={()=>downloadPdf(pdfs[0])} title="Descarcă PDF">⬇️</button>}
         <button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:11}} onClick={()=>sPdfTgt({clientId:o.clientId,offerId:o.id,agentId:isAgt?myAId:o.agentId})} title="Atașează PDF">📎{pdfs.length>0?<span className="M" style={{fontSize:10,marginLeft:2,color:"#34d399"}}>{pdfs.length}</span>:null}</button>
       </div>})()}</td>
+      <td onClick={e=>e.stopPropagation()} style={{whiteSpace:"nowrap"}}><button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:11}} onClick={()=>dupO(o)} title="Duplică">📋</button><button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:11,color:"#ef4444",marginLeft:3}} onClick={()=>sCf({msg:"Ștergi oferta pentru "+(cc?.company||"")+"?",ok:()=>delO(o.id)})} title="Șterge">🗑</button></td>
     </tr>})}</tbody></table>
     {fl.length===0&&<div style={{padding:40,textAlign:"center",color:"#475569"}}>Nicio ofertă</div>}
     </div>
@@ -682,10 +693,12 @@ const Offers=()=>{
       </div>
       <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4}}>
         <div className="M" style={{fontSize:14,fontWeight:700,color:"#10b981"}}>{fmt(tot)}</div>
-        {oPdfs.length>0&&<div style={{display:"flex",gap:3}} onClick={e=>e.stopPropagation()}>
-          <button className="btn btn-s btn-g" style={{padding:"3px 6px",fontSize:10}} onClick={()=>viewPdf(oPdfs[0])}>👁</button>
-          <button className="btn btn-s btn-g" style={{padding:"3px 6px",fontSize:10}} onClick={()=>downloadPdf(oPdfs[0])}>⬇️</button>
-        </div>}
+        <div style={{display:"flex",gap:3}} onClick={e=>e.stopPropagation()}>
+          {oPdfs.length>0&&<button className="btn btn-s btn-g" style={{padding:"3px 6px",fontSize:10}} onClick={()=>viewPdf(oPdfs[0])}>👁</button>}
+          {oPdfs.length>0&&<button className="btn btn-s btn-g" style={{padding:"3px 6px",fontSize:10}} onClick={()=>downloadPdf(oPdfs[0])}>⬇️</button>}
+          <button className="btn btn-s btn-g" style={{padding:"3px 6px",fontSize:10}} onClick={()=>dupO(o)} title="Duplică">📋</button>
+          <button className="btn btn-s btn-g" style={{padding:"3px 6px",fontSize:10,color:"#ef4444"}} onClick={()=>sCf({msg:"Ștergi oferta?",ok:()=>delO(o.id)})}>🗑</button>
+        </div>
       </div>
     </div>})}
     {!dsk&&fl.length===0&&<div style={{padding:30,textAlign:"center",color:"var(--dim)"}}>Nicio ofertă</div>}
@@ -700,11 +713,11 @@ const Home=()=>{
   const ov=mAc.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td).filter(srF);
   return<div>
     <div className="kpis">
-      <div className="kpi" onClick={()=>sPg("clients")}><b className="M" style={{color:"#818cf8"}}>{stats.tot}</b><small>Clienți</small></div>
+      <div className="kpi" onClick={()=>sPg("clients")}><b className="M" style={{color:"#818cf8"}}>{isAgt?stats.mCl:stats.tot}</b><small>{isAgt?"Clienții mei":"Clienți total"}</small></div>
       <div className="kpi"><b className="M" style={{color:"#fbbf24"}}>{fmt(stats.pv)}</b><small>Pipeline</small></div>
       <div className="kpi"><b className="M" style={{color:"#34d399"}}>{fmt(stats.wv)}</b><small>Câștigat</small></div>
-      <div className="kpi" onClick={()=>sPg("acts")}><b className="M" style={{color:stats.ov>0?"#f87171":"#22d3ee"}}>{stats.ta}</b><small>Azi{stats.ov>0&&<span style={{color:"#f87171"}}> · {stats.ov} restante</span>}</small></div>
-      <div className="kpi" onClick={()=>sPg("offers")}><b className="M" style={{color:"#06b6d4"}}>{stats.aOf}</b><small>Oferte active</small></div>
+      <div className="kpi" onClick={()=>sPg("acts")}><b className="M" style={{color:stats.ov>0?"#f87171":"#22d3ee"}}>{stats.tAc}</b><small>Activități{stats.ov>0&&<span style={{color:"#f87171"}}> · {stats.ov} restante</span>}</small></div>
+      <div className="kpi" onClick={()=>sPg("offers")}><b className="M" style={{color:"#06b6d4"}}>{stats.tOf}</b><small>Oferte ({stats.aOf} active)</small></div>
       {isAdm&&<div className="kpi" onClick={()=>sPg("followup")}><b className="M" style={{color:stats.ov>0?"#f87171":"#10b981"}}>{stats.ov}</b><small>Follow-up</small></div>}
     </div>
     {ov.length>0&&<><div className="stitle" style={{color:"#f87171"}}>🔴 Restante ({ov.length})</div>
@@ -792,12 +805,12 @@ const Acts=()=>{
     else if(tab==="over")r=r.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td);
     if(fTy!=="all")r=r.filter(a=>a.type===fTy);
     if(isAdm&&fAg!=="all")r=r.filter(a=>a.agentId===fAg);
-    if(isAdm&&fCl!=="all")r=r.filter(a=>a.clientId===fCl);
-    if(isAdm&&fSt!=="all")r=r.filter(a=>a.status===fSt);
-    if(isAdm&&fD1)r=r.filter(a=>a.date>=fD1);
-    if(isAdm&&fD2)r=r.filter(a=>a.date<=fD2);
-    if(isAdm&&fI1)r=r.filter(a=>a.createdAt&&a.createdAt.split("T")[0]>=fI1);
-    if(isAdm&&fI2)r=r.filter(a=>a.createdAt&&a.createdAt.split("T")[0]<=fI2);
+    if(fCl!=="all")r=r.filter(a=>a.clientId===fCl);
+    if(fSt!=="all")r=r.filter(a=>a.status===fSt);
+    if(fD1)r=r.filter(a=>a.date>=fD1);
+    if(fD2)r=r.filter(a=>a.date<=fD2);
+    if(fI1)r=r.filter(a=>a.createdAt&&a.createdAt.split("T")[0]>=fI1);
+    if(fI2)r=r.filter(a=>a.createdAt&&a.createdAt.split("T")[0]<=fI2);
     if(sr)r=r.filter(a=>{const c=gC(a.clientId);return(((c?c.company:""))+" "+a.notes).toLowerCase().includes(sr.toLowerCase())});
     return[...r].sort((a,b)=>tab==="done"?b.date.localeCompare(a.date):a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
   },[ac,tab,sr,myAId,fAg,fCl,fSt,fTy,fD1,fD2,fI1,fI2]);
@@ -805,12 +818,13 @@ const Acts=()=>{
     <div style={{display:"flex",gap:6,marginBottom:8,alignItems:"center",flexWrap:"wrap"}}>
       {dsk&&<button className="btn btn-s btn-p" onClick={()=>sMd({t:"na"})}>+ Activitate Nouă</button>}
       <div className="tabs" style={{flex:1}}>{[["upcoming","Viitoare"],["today","Azi"],["done","✓ Done"],["over","⚠️"+(on?" "+on:"")]].map(x=><div key={x[0]} className={"tab"+(tab===x[0]?" on":"")} onClick={()=>sTab(x[0])}>{x[1]}</div>)}</div>
-      {isAdm&&<button className={"btn btn-s "+(showF||hasF?"btn-p":"btn-g")} style={{padding:"4px 10px",fontSize:11}} onClick={()=>sShowF(!showF)}>🔍{hasF?" ●":""}</button>}
+      <button className={"btn btn-s "+(showF||hasF?"btn-p":"btn-g")} style={{padding:"4px 10px",fontSize:11}} onClick={()=>sShowF(!showF)}>🔍{hasF?" ●":""}</button>
+      <button className="btn btn-s btn-g" style={{padding:"4px 10px",fontSize:11}} onClick={()=>expCsv(fl,"activitati_"+td)} title="Export CSV">📥 CSV</button>
     </div>
-    {isAdm&&showF&&<div style={{background:"var(--bg2)",borderRadius:10,padding:12,marginBottom:10,border:"1px solid rgba(99,102,241,.2)"}}>
+    {showF&&<div style={{background:"var(--bg2)",borderRadius:10,padding:12,marginBottom:10,border:"1px solid rgba(99,102,241,.2)"}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Agent</div><select style={{fontSize:12,padding:"6px 8px"}} value={fAg} onChange={e=>sFAg(e.target.value)}><option value="all">Toți</option>{ag.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
-        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Client</div><select style={{fontSize:12,padding:"6px 8px"}} value={fCl} onChange={e=>sFCl(e.target.value)}><option value="all">Toți</option>{cl.map(x=><option key={x.id} value={x.id}>{x.company}</option>)}</select></div>
+        {isAdm&&<div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Agent</div><select style={{fontSize:12,padding:"6px 8px"}} value={fAg} onChange={e=>sFAg(e.target.value)}><option value="all">Toți</option>{ag.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></div>}
+        <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Client</div><select style={{fontSize:12,padding:"6px 8px"}} value={fCl} onChange={e=>sFCl(e.target.value)}><option value="all">Toți</option>{(isAgt?cl.filter(x=>x.agentId===myAId||x.agentId2===myAId):cl).map(x=><option key={x.id} value={x.id}>{x.company}</option>)}</select></div>
         <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Status</div><select style={{fontSize:12,padding:"6px 8px"}} value={fSt} onChange={e=>sFSt(e.target.value)}><option value="all">Toate</option><option value="planificat">Planificat</option><option value="in_desfasurare">Desfășurare</option><option value="finalizat">Finalizat</option><option value="anulat">Anulat</option></select></div>
         <div><div style={{fontSize:10,color:"var(--dim)",marginBottom:2}}>Tip</div><select style={{fontSize:12,padding:"6px 8px"}} value={fTy} onChange={e=>sFTy(e.target.value)}><option value="all">Toate</option>{TY.map(t=><option key={t.id} value={t.id}>{t.i} {t.l}</option>)}</select></div>
       </div>
@@ -822,6 +836,12 @@ const Acts=()=>{
       </div>
       <div style={{display:"flex",gap:6,alignItems:"center"}}><span style={{fontSize:11,color:"var(--dim)",flex:1}}>{fl.length} rezultate</span>{hasF&&<button className="btn btn-s btn-g" style={{padding:"3px 8px",fontSize:10,color:"#f87171"}} onClick={clrF}>✕ Reset</button>}</div>
     </div>}
+    <div style={{display:"flex",gap:10,marginBottom:8,alignItems:"center",fontSize:12,color:"var(--dim)"}}>
+      <span>{fl.length} activități</span>
+      <span>· {fl.filter(a=>a.status==="finalizat").length} finalizate</span>
+      <span>· {fl.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td).length} restante</span>
+      <span>· {fl.filter(a=>a.date===td).length} azi</span>
+    </div>
     {dsk?<div className="tbl-wrap"><table className="tbl"><thead><tr><th>Tip</th><th>Client</th><th>Agent</th><th>Data / Ora</th><th>Durată</th><th>Status</th><th>Rezultat</th><th style={{maxWidth:200}}>Notițe</th><th>Acțiuni</th></tr></thead>
     <tbody>{fl.map(a=>{const c=gC(a.clientId);const agt=gA(a.agentId);const late=(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td;
       const d2m=new Date(new Date(td).getTime()+2*86400000).toISOString().split("T")[0];
@@ -838,6 +858,7 @@ const Acts=()=>{
         <td style={{whiteSpace:"nowrap"}} onClick={e=>e.stopPropagation()}>
           <button className="btn btn-s btn-g" onClick={()=>sMd({t:"ea",d:a})} style={{padding:"4px 8px",fontSize:11}}>✏️</button>
           {a.status==="planificat"&&<button className="btn btn-s btn-ok" style={{marginLeft:4,padding:"4px 8px",fontSize:11}} onClick={()=>finA(a)}>✓</button>}
+          <button className="btn btn-s btn-g" style={{marginLeft:4,padding:"4px 8px",fontSize:11,color:"#ef4444"}} onClick={()=>sCf({msg:"Ștergi activitatea?",ok:()=>delA(a.id)})}>🗑</button>
         </td>
       </tr>})}</tbody></table>
     {fl.length===0&&<div style={{padding:40,textAlign:"center",color:"#475569"}}>Nicio activitate</div>}
@@ -850,6 +871,7 @@ const Acts=()=>{
       <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{(c?c.name:"")} · {a.notes}</div></div>
       <div className="li-r"><div className="M" style={{fontSize:11,color:late?"#f87171":a.date===td?"#fbbf24":"#94a3b8"}}>{fmtD(a.date)} {a.time}</div><span className={"badge "+(a.status==="finalizat"?"bgr":a.status==="in_desfasurare"?"by":late?"br":"bb")} style={{fontSize:10}}>{a.status}</span></div>
       {a.status==="planificat"&&<button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>}
+      <button className="btn btn-s btn-g" style={{padding:"6px 8px",fontSize:11,color:"#ef4444"}} onClick={e=>{e.stopPropagation();sCf({msg:"Ștergi activitatea?",ok:()=>delA(a.id)})}}>🗑</button>
     </div>})}
     {!dsk&&fl.length===0&&<div className="empty">Nicio activitate</div>}
   </div>;
