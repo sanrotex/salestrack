@@ -708,18 +708,87 @@ const Offers=()=>{
 // ═══ PAGES ═══
 const Home=()=>{
   const mAc=isAgt?ac.filter(a=>a.agentId===myAId):ac;
+  const mCl=isAgt?cl.filter(c=>c.agentId===myAId||c.agentId2===myAId):cl;
+  const mOf=isAgt?of.filter(o=>o.agentId===myAId||cl.some(x=>x.id===o.clientId&&(x.agentId===myAId||x.agentId2===myAId))):of;
   const srF=a=>{if(!sr)return true;const c=gC(a.clientId);return((c?c.company+" "+c.name:"")+" "+a.notes).toLowerCase().includes(sr.toLowerCase())};
   const up=mAc.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date>=td).filter(srF).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
   const ov=mAc.filter(a=>(a.status==="planificat"||a.status==="in_desfasurare")&&a.date<td).filter(srF);
+  const curM=td.substring(0,7);
+  const mAcM=mAc.filter(a=>a.date&&a.date.startsWith(curM));
+  const mAcMDone=mAcM.filter(a=>a.status==="finalizat");
+  const mOfM=mOf.filter(o=>o.date&&o.date.startsWith(curM));
+  const myAgent=isAgt?ag.find(a=>a.id===myAId):null;
+  const target=myAgent?.target||0;
+  const pipeV=mCl.filter(c=>c.stage!=="pierdut"&&c.stage!=="castigat").reduce((s,c)=>s+c.value,0);
+  const wonV=mCl.filter(c=>c.stage==="castigat").reduce((s,c)=>s+c.value,0);
+  const topCl=mCl.filter(c=>c.stage!=="pierdut").sort((a,b)=>b.value-a.value).slice(0,5);
   return<div>
     <div className="kpis">
-      <div className="kpi" onClick={()=>sPg("clients")}><b className="M" style={{color:"#818cf8"}}>{isAgt?stats.mCl:stats.tot}</b><small>{isAgt?"Clienții mei":"Clienți total"}</small></div>
-      <div className="kpi"><b className="M" style={{color:"#fbbf24"}}>{fmt(stats.pv)}</b><small>Pipeline</small></div>
-      <div className="kpi"><b className="M" style={{color:"#34d399"}}>{fmt(stats.wv)}</b><small>Câștigat</small></div>
+      <div className="kpi" onClick={()=>sPg("clients")}><b className="M" style={{color:"#818cf8"}}>{mCl.length}</b><small>{isAgt?"Clienții mei":"Clienți total"}</small></div>
+      <div className="kpi" onClick={()=>sPg("pipe")}><b className="M" style={{color:"#fbbf24"}}>{fmt(pipeV)}</b><small>Pipeline</small></div>
+      <div className="kpi"><b className="M" style={{color:"#34d399"}}>{fmt(wonV)}</b><small>Câștigat</small></div>
       <div className="kpi" onClick={()=>sPg("acts")}><b className="M" style={{color:stats.ov>0?"#f87171":"#22d3ee"}}>{stats.tAc}</b><small>Activități{stats.ov>0&&<span style={{color:"#f87171"}}> · {stats.ov} restante</span>}</small></div>
-      <div className="kpi" onClick={()=>sPg("offers")}><b className="M" style={{color:"#06b6d4"}}>{stats.tOf}</b><small>Oferte ({stats.aOf} active)</small></div>
-      {isAdm&&<div className="kpi" onClick={()=>sPg("followup")}><b className="M" style={{color:stats.ov>0?"#f87171":"#10b981"}}>{stats.ov}</b><small>Follow-up</small></div>}
+      <div className="kpi" onClick={()=>sPg("offers")}><b className="M" style={{color:"#06b6d4"}}>{mOf.length}</b><small>Oferte ({stats.aOf} active)</small></div>
+      <div className="kpi" onClick={()=>sPg("followup")}><b className="M" style={{color:stats.ov>0?"#f87171":"#10b981"}}>{stats.ov}</b><small>Follow-up</small></div>
     </div>
+
+    {isAgt&&target>0&&<div style={{background:"var(--card)",borderRadius:12,padding:14,border:"1px solid var(--border)",marginBottom:12}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+        <span style={{fontSize:13,fontWeight:700}}>🎯 Target lunar</span>
+        <span className="M" style={{fontSize:13,fontWeight:700,color:wonV>=target?"#10b981":"#818cf8"}}>{fmt(wonV)} / {fmt(target)}</span>
+      </div>
+      <div style={{height:8,borderRadius:4,background:"var(--bg2)",overflow:"hidden"}}>
+        <div style={{height:"100%",borderRadius:4,background:wonV>=target?"#10b981":"linear-gradient(90deg,#6366f1,#8b5cf6)",width:Math.min(100,Math.round(wonV/target*100))+"%",transition:"width .3s"}}/>
+      </div>
+      <div style={{fontSize:11,color:"var(--dim)",marginTop:4,textAlign:"right"}}>{Math.round(wonV/target*100)}% realizat</div>
+    </div>}
+
+    <div style={{display:"grid",gridTemplateColumns:dsk?"1fr 1fr":"1fr",gap:12,marginBottom:12}}>
+      <div style={{background:"var(--card)",borderRadius:12,padding:14,border:"1px solid var(--border)"}}>
+        <div style={{fontSize:13,fontWeight:700,marginBottom:10}}>📊 Activități luna aceasta</div>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+          <span style={{fontSize:12,color:"var(--dim)"}}>Total: <b style={{color:"var(--text)"}}>{mAcM.length}</b></span>
+          <span style={{fontSize:12,color:"#10b981"}}>Finalizate: <b>{mAcMDone.length}</b></span>
+          <span style={{fontSize:12,color:"var(--dim)"}}>{mAcM.length>0?Math.round(mAcMDone.length/mAcM.length*100):0}%</span>
+        </div>
+        {mAcM.length>0&&<div style={{height:6,borderRadius:3,background:"var(--bg2)",overflow:"hidden",marginBottom:10}}>
+          <div style={{height:"100%",borderRadius:3,background:"#10b981",width:Math.round(mAcMDone.length/mAcM.length*100)+"%"}}/>
+        </div>}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+          {TY.map(t=>{const n=mAcM.filter(a=>a.type===t.id).length;const d=mAcM.filter(a=>a.type===t.id&&a.status==="finalizat").length;
+            return n>0?<div key={t.id} style={{background:"var(--bg2)",borderRadius:8,padding:"8px 6px",textAlign:"center"}}>
+              <div style={{fontSize:16}}>{t.i}</div>
+              <div className="M" style={{fontSize:14,fontWeight:700}}>{n}</div>
+              {d>0&&<div style={{fontSize:9,color:"#10b981"}}>✓ {d}</div>}
+            </div>:null})}
+        </div>
+      </div>
+
+      <div style={{background:"var(--card)",borderRadius:12,padding:14,border:"1px solid var(--border)"}}>
+        <div style={{fontSize:13,fontWeight:700,marginBottom:10}}>📄 Oferte luna aceasta</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          {[["draft","Draft","#64748b"],["trimis","Trimise","#06b6d4"],["acceptat","Acceptate","#10b981"],["respins","Respinse","#ef4444"]].map(([st,lb,co])=>{
+            const n=mOfM.filter(o=>o.status===st).length;const v=mOfM.filter(o=>o.status===st).reduce((s,o)=>s+oTotal(o),0);
+            return<div key={st} style={{background:"var(--bg2)",borderRadius:8,padding:"8px 10px"}}>
+              <div style={{fontSize:11,color:co,fontWeight:600}}>{lb}</div>
+              <div className="M" style={{fontSize:16,fontWeight:700}}>{n}</div>
+              {v>0&&<div className="M" style={{fontSize:10,color:"var(--dim)"}}>{fmt(v)}</div>}
+            </div>})}
+        </div>
+        {mOfM.length>0&&<div style={{marginTop:8,fontSize:11,color:"var(--dim)"}}>Rată conversie: <b style={{color:mOfM.filter(o=>o.status==="acceptat").length>0?"#10b981":"var(--text)"}}>{mOfM.filter(o=>o.status==="trimis"||o.status==="acceptat"||o.status==="respins").length>0?Math.round(mOfM.filter(o=>o.status==="acceptat").length/mOfM.filter(o=>o.status==="trimis"||o.status==="acceptat"||o.status==="respins").length*100):0}%</b></div>}
+      </div>
+    </div>
+
+    {topCl.length>0&&<div style={{background:"var(--card)",borderRadius:12,padding:14,border:"1px solid var(--border)",marginBottom:12}}>
+      <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>🏆 Top clienți</div>
+      {topCl.map((c,i)=>{const g=gA(c.agentId);const s=sI(c.stage);return<div key={c.id} style={{display:"flex",gap:8,alignItems:"center",padding:"6px 0",borderBottom:i<topCl.length-1?"1px solid var(--border)":"none",cursor:"pointer"}} onClick={()=>sMd({t:"vc",d:c})}>
+        <span style={{fontSize:12,fontWeight:700,color:"var(--dim)",width:18}}>{i+1}.</span>
+        <div className="av" style={{background:g?.color||"#6366f1",width:28,height:28,fontSize:10}}>{mkA(c.name||c.company)}</div>
+        <div style={{flex:1,minWidth:0}}><div style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.company}</div><div style={{fontSize:10,color:"var(--dim)"}}><span className={"badge "+s.b} style={{fontSize:9,padding:"1px 6px"}}>{s.i} {s.l}</span></div></div>
+        <div className="M" style={{fontSize:13,fontWeight:700,color:"#10b981"}}>{fmt(c.value)}</div>
+      </div>})}
+    </div>}
+
     {ov.length>0&&<><div className="stitle" style={{color:"#f87171"}}>🔴 Restante ({ov.length})</div>
       {ov.map(a=>{const c=gC(a.clientId);return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})}>
         <span style={{fontSize:20}}>{tI(a.type)}</span>
@@ -1192,7 +1261,7 @@ const renderMd=()=>{
 };
 
 
-const NAV=[["home","🏠","Acasă"],["clients","👥","Clienți"],["acts","📅","Activități"],["offers","📄","Oferte"],["more","⚙️","Mai mult"]];
+const NAV=[["home","🏠","Acasă"],["clients","👥","Clienți"],["pipe","📊","Pipeline"],["acts","📅","Activități"],["offers","📄","Oferte"],["followup","📞","Follow-up"],["more","⚙️","Mai mult"]];
 const NAV2=isAdm?[["home","🏠","Acasă"],["clients","👥","Clienți"],["pipe","📊","Pipeline"],["acts","📅","Activități"],["offers","📄","Oferte"],["followup","📞","Follow-up"],["reports","📈","Rapoarte"],["more","⚙️","Setări"]]:NAV;
 
 if(!sbRdy) return<MobLoading/>;
