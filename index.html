@@ -19,10 +19,10 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--bg:#06080d;--bg2:#0c1017;--card:#111520;--border:#1c2333;--text:#e2e8f0;--muted:#64748b;--dim:#475569;--accent:#6366f1;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px)}
+:root{--bg:#fafbfc;--bg2:#f1f3f7;--card:#ffffff;--border:#eaeef4;--text:#1a1f2e;--muted:#6b7484;--dim:#94a3b8;--accent:#6366f1;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--shadow:0 1px 3px rgba(0,0,0,.04);--shadow-lg:0 4px 16px rgba(0,0,0,.06);--sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px)}
 html,body,#root{height:100%;overflow:hidden}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overscroll-behavior:none}
-input,select,textarea{font-family:inherit;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px 14px;font-size:14px;outline:none;width:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overscroll-behavior:none;font-size:15px;line-height:1.5}
+input,select,textarea{font-family:inherit;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:14px 16px;font-size:15px;outline:none;width:100%}
 input:focus,select:focus{border-color:var(--accent)}
 textarea{resize:vertical;min-height:50px}
 button{font-family:inherit;cursor:pointer;border:none}
@@ -30,28 +30,30 @@ button:active{transform:scale(0.96)}
 .M{font-family:'JetBrains Mono',monospace}
 .app{height:100%;display:flex;flex-direction:column}
 .hdr{padding:12px 16px;padding-top:max(12px,var(--st));background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
-.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px}
+.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 18px 24px}
 .nav{display:flex;background:var(--bg2);border-top:1px solid var(--border);padding-bottom:var(--sb);flex-shrink:0}
 .ni{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;font-size:10px;color:var(--dim);gap:2px}
 .ni.on{color:#818cf8}
-.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
-.kpi b{font-size:22px;font-weight:800;display:block}
-.kpi small{font-size:11px;color:var(--muted);display:block;margin-top:2px}
-.li{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:center}
-.li:active{background:#161c28}
-.av{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;transition:all .2s;box-shadow:var(--shadow)}
+.kpi:active{transform:scale(.98);background:#f5f7fa}
+.kpi b{font-size:28px;font-weight:800;display:block;line-height:1.1}
+.kpi small{font-size:12px;color:var(--muted);display:block;margin-top:4px}
+.li{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px;display:flex;gap:14px;align-items:center;transition:all .15s;box-shadow:var(--shadow)}
+.li:active{background:#f5f7fa;transform:scale(.99)}
+.av{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;flex-shrink:0}
 .li-b{flex:1;min-width:0;overflow:hidden}
-.li-t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.li-s{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-t{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-s{font-size:13px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .li-r{text-align:right;flex-shrink:0}
 .badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600}
 .bg{background:rgba(100,116,139,.12);color:#94a3b8}.bp{background:rgba(168,85,247,.12);color:#c084fc}
 .by{background:rgba(245,158,11,.12);color:#fbbf24}.bc{background:rgba(6,182,212,.12);color:#22d3ee}
 .bgr{background:rgba(16,185,129,.12);color:#34d399}.br{background:rgba(239,68,68,.12);color:#f87171}
 .bb{background:rgba(99,102,241,.12);color:#a5b4fc}
-.btn{padding:10px 18px;border-radius:10px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;justify-content:center}
-.btn-f{width:100%}.btn-s{padding:8px 14px;font-size:13px;border-radius:8px}
+.btn{padding:12px 20px;border-radius:12px;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px;justify-content:center;transition:all .15s}
+.btn:active{transform:scale(.96)}
+.btn-f{width:100%}.btn-s{padding:9px 14px;font-size:13px;border-radius:10px}
 .btn-p{background:var(--accent);color:white}.btn-ok{background:var(--green);color:white}
 .btn-d{background:var(--red);color:white}.btn-g{background:transparent;color:var(--muted);border:1px solid var(--border)}
 .fab{position:fixed;bottom:calc(70px + var(--sb));right:16px;width:56px;height:56px;border-radius:16px;background:var(--accent);color:white;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(99,102,241,.4);z-index:20}
@@ -71,10 +73,23 @@ button:active{transform:scale(0.96)}
 .tab{flex:1;text-align:center;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap}
 .tab.on{background:var(--accent);color:white;font-weight:600}
 .srch{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:14px;color:var(--text);width:100%;margin-bottom:12px}
-.empty{padding:30px;text-align:center;color:var(--dim);font-size:13px}
-.toast{position:fixed;top:max(16px,var(--st));left:16px;right:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:13px;z-index:100;box-shadow:0 8px 30px rgba(0,0,0,.5);text-align:center;animation:up .25s}
-.hdr-title{display:none}.hdr-uname{display:none}.hdr-search{display:none}
-.stitle{font-size:13px;font-weight:700;margin:14px 0 8px}
+.empty{padding:40px 24px;text-align:center;color:var(--muted);font-size:14px;background:var(--card);border:1px dashed var(--border);border-radius:16px;margin-top:8px}
+.empty-emoji{font-size:36px;margin-bottom:10px;display:block;opacity:.7}
+.toast{position:fixed;top:max(16px,var(--st));left:16px;right:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:13px;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.12);text-align:center;animation:up .25s}
+.hdr-title{display:block;font-size:17px;font-weight:700;color:var(--text)}.hdr-uname{display:none}.hdr-search{display:none}
+.back-btn{width:38px;height:38px;border-radius:12px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text);cursor:pointer;font-weight:700;box-shadow:var(--shadow);flex-shrink:0;padding:0;transition:all .12s}
+.back-btn:active{background:#f5f7fa;transform:scale(.92)}
+.back-btn:hover{border-color:var(--accent);color:var(--accent)}
+.stitle{font-size:16px;font-weight:700;margin:22px 0 12px;letter-spacing:-.2px}
+.greet{margin-bottom:18px;padding:4px 2px}
+.greet-h{font-size:24px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.greet-s{font-size:14px;color:var(--muted);line-height:1.5}
+.cta{background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.08));border:1px solid rgba(99,102,241,.25);border-radius:18px;padding:16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s}
+.cta:active{transform:scale(.99)}
+.cta-i{font-size:28px;flex-shrink:0}
+.cta-b{flex:1}
+.cta-t{font-size:15px;font-weight:700;margin-bottom:2px}
+.cta-s{font-size:12px;color:var(--muted)}
 .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .cfrm{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}
 .cbox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:340px;text-align:center}
@@ -84,7 +99,7 @@ button:active{transform:scale(0.96)}
 /* ═══ DESKTOP ═══ */
 @media(min-width:900px){
   html,body,#root{overflow:hidden}
-  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#252d40;border-radius:3px}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d4dae5;border-radius:3px}
 
   .app{display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto 1fr;height:100vh;overflow:hidden}
 
@@ -141,13 +156,13 @@ button:active{transform:scale(0.96)}
   /* ── KPIs ── */
   .kpis{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
   .kpi{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:border .2s;position:relative}
-  .kpi:hover{border-color:#252d40}
+  .kpi:hover{border-color:rgba(99,102,241,.3);box-shadow:var(--shadow-lg);transform:translateY(-1px)}
   .kpi b{font-size:26px}
   .kpi small{font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
 
   /* ── List items ── */
   .li{padding:14px 18px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;transition:all .15s}
-  .li:hover{border-color:rgba(99,102,241,.3);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+  .li:hover{border-color:rgba(99,102,241,.3);transform:translateY(-1px);box-shadow:0 4px 16px rgba(99,102,241,.12)}
   .li-t{font-size:14px}
   .li-s{font-size:12px}
 
@@ -169,7 +184,7 @@ button:active{transform:scale(0.96)}
   input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 
   /* ── Toast ── */
-  .toast{left:auto;right:24px;top:20px;max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+  .toast{left:auto;right:24px;top:20px;max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,.12)}
 
   /* ── Buttons on desktop ── */
   .btn{transition:all .15s}
@@ -276,6 +291,8 @@ class ErrorBoundary extends React.Component{
 
 function App(){
 const [pg,sPg]=useState("home");
+const [navHist,sNavHist]=useState([]);
+const lastPgRef=useRef("home");
 const [ag,sAg]=useState([]);
 const [cl,sCl]=useState([]);
 const [ac,sAc]=useState([]);
@@ -317,6 +334,50 @@ const tt=useRef(null);
 const show=useCallback(m=>{if(tt.current)clearTimeout(tt.current);sTs(m);tt.current=setTimeout(()=>sTs(null),2200)},[]);
 const gC=id=>cl.find(c=>c.id===id);
 const gA=id=>ag.find(a=>a.id===id);
+
+useEffect(()=>{
+  if(lastPgRef.current===pg)return;
+  sNavHist(h=>h[h.length-1]===lastPgRef.current?h:[...h.slice(-9),lastPgRef.current]);
+  lastPgRef.current=pg;
+},[pg]);
+const goBack=useCallback(()=>{
+  if(md){sMd(null);return;}
+  if(cf){sCf(null);return;}
+  if(navHist.length>0){
+    const last=navHist[navHist.length-1];
+    sNavHist(h=>h.slice(0,-1));
+    lastPgRef.current=last;
+    sPg(last);
+    return;
+  }
+  if(pg!=="home"){lastPgRef.current="home";sPg("home");}
+},[md,cf,navHist,pg]);
+useEffect(()=>{
+  const onKey=e=>{if(e.key==="Escape"){goBack();}};
+  window.addEventListener("keydown",onKey);
+  return()=>window.removeEventListener("keydown",onKey);
+},[goBack]);
+useEffect(()=>{
+  const onPop=e=>{
+    if(md){sMd(null);try{window.history.pushState({app:true},"");}catch(_){}return;}
+    if(cf){sCf(null);try{window.history.pushState({app:true},"");}catch(_){}return;}
+    if(navHist.length>0){
+      const last=navHist[navHist.length-1];
+      sNavHist(h=>h.slice(0,-1));
+      lastPgRef.current=last;
+      sPg(last);
+      try{window.history.pushState({app:true},"");}catch(_){}
+      return;
+    }
+    if(pg!=="home"){lastPgRef.current="home";sPg("home");try{window.history.pushState({app:true},"");}catch(_){}return;}
+  };
+  window.addEventListener("popstate",onPop);
+  return()=>window.removeEventListener("popstate",onPop);
+},[md,cf,navHist,pg]);
+useEffect(()=>{
+  if(pg!=="home"||md||cf){try{window.history.pushState({app:true,pg},"");}catch(e){}}
+},[pg,md,cf]);
+const canGoBack=md!==null||cf!==null||pg!=="home"||navHist.length>0;
 
 useEffect(()=>{
   Promise.all([
@@ -722,29 +783,58 @@ const Home=()=>{
   const pipeV=mCl.filter(c=>c.stage!=="pierdut"&&c.stage!=="castigat").reduce((s,c)=>s+c.value,0);
   const wonV=mCl.filter(c=>c.stage==="castigat").reduce((s,c)=>s+c.value,0);
   const topCl=mCl.filter(c=>c.stage!=="pierdut").sort((a,b)=>b.value-a.value).slice(0,5);
+  const hr=new Date().getHours();
+  const greet=hr<12?"Bună dimineața":hr<18?"Bună ziua":"Bună seara";
+  const wave=hr<12?"☀️":hr<18?"👋":"🌙";
+  const firstName=(isAgt?myAgent?.name:"Admin")?.split(" ")[0]||"Alex";
+  const todayCt=up.filter(a=>a.date===td).length;
+  const ofActive=mOf.filter(o=>o.status==="trimis").length;
+  const ovCalls=ov.filter(a=>a.type==="telefon");
+  const ovOther=ov.filter(a=>a.type!=="telefon");
+  const motivM=todayCt===0&&ov.length===0?"Zi liniștită azi. Profită să suni câțiva clienți.":todayCt>0?`Ai ${todayCt} ${todayCt===1?"activitate":"activități"} programate pentru azi.`:ov.length>0?`Ai ${ov.length} ${ov.length===1?"activitate restantă":"activități restante"}. Hai să le rezolvăm.`:"";
   return<div>
-    <div className="kpis">
-      <div className="kpi" onClick={()=>sPg("clients")}><b className="M" style={{color:"#818cf8"}}>{mCl.length}</b><small>{isAgt?"Clienții mei":"Clienți total"}</small></div>
-      <div className="kpi" onClick={()=>sPg("pipe")}><b className="M" style={{color:"#fbbf24"}}>{fmt(pipeV)}</b><small>Pipeline</small></div>
-      <div className="kpi"><b className="M" style={{color:"#34d399"}}>{fmt(wonV)}</b><small>Câștigat</small></div>
-      <div className="kpi" onClick={()=>sPg("acts")}><b className="M" style={{color:stats.ov>0?"#f87171":"#22d3ee"}}>{stats.tAc}</b><small>Activități{stats.ov>0&&<span style={{color:"#f87171"}}> · {stats.ov} restante</span>}</small></div>
-      <div className="kpi" onClick={()=>sPg("offers")}><b className="M" style={{color:"#06b6d4"}}>{mOf.length}</b><small>Oferte ({stats.aOf} active)</small></div>
-      <div className="kpi" onClick={()=>sPg("followup")}><b className="M" style={{color:stats.ov>0?"#f87171":"#10b981"}}>{stats.ov}</b><small>Follow-up</small></div>
+    <div className="greet">
+      <div className="greet-h">{greet}, {firstName}! {wave}</div>
+      {motivM&&<div className="greet-s">{motivM}</div>}
     </div>
 
-    {isAgt&&target>0&&<div style={{background:"var(--card)",borderRadius:12,padding:14,border:"1px solid var(--border)",marginBottom:12}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-        <span style={{fontSize:13,fontWeight:700}}>🎯 Target lunar</span>
-        <span className="M" style={{fontSize:13,fontWeight:700,color:wonV>=target?"#10b981":"#818cf8"}}>{fmt(wonV)} / {fmt(target)}</span>
+    {isAgt&&target>0&&<div style={{background:"var(--card)",borderRadius:18,padding:18,border:"1px solid var(--border)",marginBottom:14,boxShadow:"var(--shadow)"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+        <span style={{fontSize:15,fontWeight:700}}>🎯 Target lunar</span>
+        <span className="M" style={{fontSize:14,fontWeight:700,color:wonV>=target?"#059669":"#6366f1"}}>{fmt(wonV)} / {fmt(target)}</span>
       </div>
-      <div style={{height:8,borderRadius:4,background:"var(--bg2)",overflow:"hidden"}}>
-        <div style={{height:"100%",borderRadius:4,background:wonV>=target?"#10b981":"linear-gradient(90deg,#6366f1,#8b5cf6)",width:Math.min(100,Math.round(wonV/target*100))+"%",transition:"width .3s"}}/>
+      <div style={{height:10,borderRadius:5,background:"var(--bg2)",overflow:"hidden"}}>
+        <div style={{height:"100%",borderRadius:5,background:wonV>=target?"linear-gradient(90deg,#10b981,#059669)":"linear-gradient(90deg,#6366f1,#8b5cf6)",width:Math.min(100,Math.round(wonV/target*100))+"%",transition:"width .3s"}}/>
       </div>
-      <div style={{fontSize:11,color:"var(--dim)",marginTop:4,textAlign:"right"}}>{Math.round(wonV/target*100)}% realizat</div>
+      <div style={{fontSize:12,color:"var(--muted)",marginTop:6,textAlign:"right",fontWeight:600}}>{Math.round(wonV/target*100)}% realizat</div>
     </div>}
 
+    {ovCalls.length>0&&<div className="cta" onClick={()=>sPg("followup")} style={{background:"linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.05))",borderColor:"rgba(245,158,11,.3)"}}>
+      <div className="cta-i">📞</div>
+      <div className="cta-b"><div className="cta-t">{ovCalls.length} {ovCalls.length===1?"apel restant":"apeluri restante"}</div><div className="cta-s">Sună acum sau marchează ca efectuate</div></div>
+      <div style={{fontSize:20,color:"#f59e0b"}}>›</div>
+    </div>}
+    {ovOther.length>0&&<div className="cta" onClick={()=>sPg("acts")} style={{background:"linear-gradient(135deg,rgba(239,68,68,.15),rgba(239,68,68,.05))",borderColor:"rgba(239,68,68,.3)"}}>
+      <div className="cta-i">🔔</div>
+      <div className="cta-b"><div className="cta-t">{ovOther.length} {ovOther.length===1?"activitate restantă":"activități restante"}</div><div className="cta-s">Vizite, emailuri, meeting-uri de rezolvat</div></div>
+      <div style={{fontSize:20,color:"#f87171"}}>›</div>
+    </div>}
+    {ofActive>0&&<div className="cta" onClick={()=>sPg("offers")} style={{background:"linear-gradient(135deg,rgba(6,182,212,.15),rgba(6,182,212,.05))",borderColor:"rgba(6,182,212,.3)"}}>
+      <div className="cta-i">📨</div>
+      <div className="cta-b"><div className="cta-t">{ofActive} {ofActive===1?"ofertă trimisă":"oferte trimise"} în așteptare</div><div className="cta-s">Verifică dacă au răspuns clienții</div></div>
+      <div style={{fontSize:20,color:"#22d3ee"}}>›</div>
+    </div>}
+
+    <div className="kpis">
+      <div className="kpi" onClick={()=>sPg("clients")}><b className="M" style={{color:"#6366f1"}}>{mCl.length}</b><small>{isAgt?"Clienții mei":"Clienți total"}</small></div>
+      <div className="kpi"><b className="M" style={{color:"#10b981"}}>{fmt(wonV)}</b><small>Câștigat</small></div>
+      <div className="kpi" onClick={()=>sPg("acts")}><b className="M" style={{color:stats.ov>0?"#ef4444":"#0891b2"}}>{stats.tAc}</b><small>Activități{stats.ov>0&&<span style={{color:"#ef4444"}}> · {stats.ov} restante</span>}</small></div>
+      <div className="kpi" onClick={()=>sPg("offers")}><b className="M" style={{color:"#06b6d4"}}>{mOf.length}</b><small>Oferte ({stats.aOf} active)</small></div>
+      <div className="kpi" onClick={()=>sPg("followup")}><b className="M" style={{color:stats.ov>0?"#ef4444":"#10b981"}}>{stats.ov}</b><small>Follow-up</small></div>
+    </div>
+
     <div style={{display:"grid",gridTemplateColumns:dsk?"1fr 1fr":"1fr",gap:12,marginBottom:12}}>
-      <div style={{background:"var(--card)",borderRadius:12,padding:14,border:"1px solid var(--border)"}}>
+      <div style={{background:"var(--card)",borderRadius:18,padding:16,border:"1px solid var(--border)",boxShadow:"var(--shadow)"}}>
         <div style={{fontSize:13,fontWeight:700,marginBottom:10}}>📊 Activități luna aceasta</div>
         <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
           <span style={{fontSize:12,color:"var(--dim)"}}>Total: <b style={{color:"var(--text)"}}>{mAcM.length}</b></span>
@@ -764,7 +854,7 @@ const Home=()=>{
         </div>
       </div>
 
-      <div style={{background:"var(--card)",borderRadius:12,padding:14,border:"1px solid var(--border)"}}>
+      <div style={{background:"var(--card)",borderRadius:18,padding:16,border:"1px solid var(--border)",boxShadow:"var(--shadow)"}}>
         <div style={{fontSize:13,fontWeight:700,marginBottom:10}}>📄 Oferte luna aceasta</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
           {[["draft","Draft","#64748b"],["trimis","Trimise","#06b6d4"],["acceptat","Acceptate","#10b981"],["respins","Respinse","#ef4444"]].map(([st,lb,co])=>{
@@ -779,8 +869,8 @@ const Home=()=>{
       </div>
     </div>
 
-    {topCl.length>0&&<div style={{background:"var(--card)",borderRadius:12,padding:14,border:"1px solid var(--border)",marginBottom:12}}>
-      <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>🏆 Top clienți</div>
+    {topCl.length>0&&<div style={{background:"var(--card)",borderRadius:18,padding:16,border:"1px solid var(--border)",marginBottom:14,boxShadow:"var(--shadow)"}}>
+      <div style={{fontSize:15,fontWeight:700,marginBottom:10}}>🏆 Top clienți</div>
       {topCl.map((c,i)=>{const g=gA(c.agentId);const s=sI(c.stage);return<div key={c.id} style={{display:"flex",gap:8,alignItems:"center",padding:"6px 0",borderBottom:i<topCl.length-1?"1px solid var(--border)":"none",cursor:"pointer"}} onClick={()=>sMd({t:"vc",d:c})}>
         <span style={{fontSize:12,fontWeight:700,color:"var(--dim)",width:18}}>{i+1}.</span>
         <div className="av" style={{background:g?.color||"#6366f1",width:28,height:28,fontSize:10}}>{mkA(c.name||c.company)}</div>
@@ -789,20 +879,29 @@ const Home=()=>{
       </div>})}
     </div>}
 
-    {ov.length>0&&<><div className="stitle" style={{color:"#f87171"}}>🔴 Restante ({ov.length})</div>
-      {ov.map(a=>{const c=gC(a.clientId);return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})}>
-        <span style={{fontSize:20}}>{tI(a.type)}</span>
+    {ovCalls.length>0&&<><div className="stitle" style={{color:"#f59e0b"}}>📞 Apeluri restante ({ovCalls.length})</div>
+      {ovCalls.map(a=>{const c=gC(a.clientId);return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})}>
+        <span style={{fontSize:22}}>📞</span>
+        <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{fmtD(a.date)} · {a.notes||"Apel programat"}</div></div>
+        <div style={{display:"flex",gap:6}}>
+          {c?.phone&&<a className="btn btn-s" href={"tel:"+c.phone} onClick={e=>e.stopPropagation()} style={{background:"#f59e0b",color:"#fff",textDecoration:"none"}}>📞</a>}
+          <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>
+        </div>
+      </div>})}</>}
+    {ovOther.length>0&&<><div className="stitle" style={{color:"#f87171"}}>🔴 De rezolvat ({ovOther.length})</div>
+      {ovOther.map(a=>{const c=gC(a.clientId);return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})}>
+        <span style={{fontSize:22}}>{tI(a.type)}</span>
         <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{fmtD(a.date)} · {a.notes}</div></div>
         <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>
       </div>})}</>}
-    <div className="stitle">📅 Următoarele ({up.length})</div>
+    <div className="stitle">📅 Următoarele zile</div>
     {up.map(a=>{const c=gC(a.clientId);const g=gA(a.agentId);return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})}>
-      <span style={{fontSize:20}}>{tI(a.type)}</span>
+      <span style={{fontSize:22}}>{tI(a.type)}</span>
       <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{(c?c.name:"")} · {(g?g.name:"")}</div></div>
-      <div className="li-r"><div className="M" style={{fontSize:12,color:a.date===td?"#fbbf24":"#94a3b8"}}>{fmtD(a.date)}</div><div style={{fontSize:11,color:"var(--dim)"}}>{a.time}</div></div>
+      <div className="li-r"><div className="M" style={{fontSize:13,fontWeight:600,color:a.date===td?"#fbbf24":"#94a3b8"}}>{fmtD(a.date)}</div><div style={{fontSize:11,color:"var(--dim)"}}>{a.time}</div></div>
       <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>
     </div>})}
-    {up.length===0&&<div className="empty">Nicio activitate planificată</div>}
+    {up.length===0&&<div className="empty"><span className="empty-emoji">🌤️</span>Niciun plan pe moment.<br/>Adaugă o activitate când vrei.</div>}
   </div>;
 };
 
@@ -853,7 +952,7 @@ const Clients=()=>{
       <div className="li-b"><div className="li-t">{c.company}{late?<span style={{marginLeft:4}}>🔴</span>:soon?<span style={{marginLeft:4}}>🟡</span>:""}</div><div className="li-s">{c.name}{c.cui?" · "+c.cui:""}{c.agentId2?<span style={{color:"var(--dim)"}}>{" · 👥"}</span>:""}</div></div>
       <div className="li-r"><div className="M" style={{fontSize:13,fontWeight:700,color:"#10b981"}}>{fmt(c.value)}</div><span className={"badge "+s.b}>{s.i}</span></div>
     </div>})}
-    {!dsk&&fl.length===0&&<div className="empty">Niciun client</div>}
+    {!dsk&&fl.length===0&&<div className="empty"><span className="empty-emoji">👥</span>Niciun client deocamdată.<br/>Apasă „+" pentru a adăuga unul.</div>}
   </div>;
 };
 
@@ -942,7 +1041,7 @@ const Acts=()=>{
       {a.status==="planificat"&&<button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>}
       <button className="btn btn-s btn-g" style={{padding:"6px 8px",fontSize:11,color:"#ef4444"}} onClick={e=>{e.stopPropagation();sCf({msg:"Ștergi activitatea?",ok:()=>delA(a.id)})}}>🗑</button>
     </div>})}
-    {!dsk&&fl.length===0&&<div className="empty">Nicio activitate</div>}
+    {!dsk&&fl.length===0&&<div className="empty"><span className="empty-emoji">📅</span>Nicio activitate de afișat.<br/>Schimbă filtrele sau adaugă una nouă.</div>}
   </div>;
 };
 
@@ -984,7 +1083,7 @@ const Pipe=()=>{
       <div className="li-b"><div className="li-t">{c.company}</div><div className="li-s">{c.name} · {(g?g.name:"")}</div></div>
       <div className="M" style={{fontSize:14,fontWeight:700,color:"#10b981"}}>{fmt(c.value)}</div>
     </div>})}
-    {list.length===0&&<div className="empty">Gol</div>}
+    {list.length===0&&<div className="empty"><span className="empty-emoji">📭</span>Aici e gol pe moment.</div>}
   </div>;
 };
 
@@ -1013,14 +1112,14 @@ const FollowUp=()=>{
       <div className="li-r"><div className="M" style={{fontSize:11,color:a.date===td?"#fbbf24":"#94a3b8"}}>{fmtD(a.date)} {a.time}</div></div>
       <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}} style={{padding:"4px 8px"}}>✓</button>
     </div>})}
-    {upCalls.length===0&&<div className="empty">Niciun apel programat</div>}
+    {upCalls.length===0&&<div className="empty"><span className="empty-emoji">📞</span>Niciun apel programat.<br/>Programează unul pentru azi sau mâine.</div>}
     <div className="stitle" style={{color:"#f59e0b"}}>⚠️ De Contactat — 14+ zile ({stale.length})</div>
     {stale.map(cc=>{const gg=gA(cc.agentId);return<div key={cc.id} className="li" style={{borderLeft:"3px solid #f59e0b",padding:12}} onClick={()=>sMd({t:"vc",d:cc})}>
       <div className="av" style={{background:gg?.color||"#6366f1",width:32,height:32,fontSize:11}}>{mkA(cc.name||cc.company)}</div>
       <div className="li-b"><div className="li-t">{cc.company}</div><div className="li-s">{cc.name} · {gg?.name||""} · {fmtD(cc.lastContact)}</div></div>
       <button className="btn btn-s btn-p" onClick={e=>{e.stopPropagation();sMd({t:"na",d:{type:"telefon",clientId:cc.id,agentId:cc.agentId,date:td,time:nwT(),duration:15,status:"planificat",result:"",notes:"Follow-up"}})}} style={{padding:"4px 8px",fontSize:11}}>📞</button>
     </div>})}
-    {stale.length===0&&<div className="empty">✅ Toți contactați recent</div>}
+    {stale.length===0&&<div className="empty"><span className="empty-emoji">🎉</span>Bună treabă! Toți clienții au fost contactați recent.</div>}
   </div>;
 };
 
@@ -1076,7 +1175,7 @@ const Reports=()=>{
         <span className="M" style={{color:"#10b981",fontWeight:700}}>{fmt(a.oVal)}</span>
       </div>}
     </div>})}
-    {agR.length===0&&<div className="empty">Niciun agent activ</div>}
+    {agR.length===0&&<div className="empty"><span className="empty-emoji">👤</span>Niciun agent activ.</div>}
   </div>;
 };
 
@@ -1262,14 +1361,15 @@ const renderMd=()=>{
 };
 
 
-const NAV=[["home","🏠","Acasă"],["clients","👥","Clienți"],["pipe","📊","Pipeline"],["acts","📅","Activități"],["offers","📄","Oferte"],["followup","📞","Follow-up"],["more","⚙️","Mai mult"]];
-const NAV2=isAdm?[["home","🏠","Acasă"],["clients","👥","Clienți"],["pipe","📊","Pipeline"],["acts","📅","Activități"],["offers","📄","Oferte"],["followup","📞","Follow-up"],["reports","📈","Rapoarte"],["more","⚙️","Setări"]]:NAV;
+const NAV=[["home","🏠","Acasă"],["clients","👥","Clienți"],["acts","📅","Activități"],["offers","📄","Oferte"],["followup","📞","Follow-up"],["more","⚙️","Mai mult"]];
+const NAV2=isAdm?[["home","🏠","Acasă"],["clients","👥","Clienți"],["acts","📅","Activități"],["offers","📄","Oferte"],["followup","📞","Follow-up"],["reports","📈","Rapoarte"],["more","⚙️","Setări"]]:NAV;
 
 if(!sbRdy) return<MobLoading/>;
 if(!curUser) return<MobLogin/>;
 const pgTitle={home:"Dashboard",clients:"Clienți",pipe:"Pipeline",acts:"Activități",offers:"Oferte",followup:"Follow-up",reports:"Rapoarte",more:"Setări"};
 return<div className="app">
   <div className="hdr">
+    {canGoBack&&<button className="back-btn" onClick={goBack} aria-label="Înapoi">←</button>}
     <div className="hdr-title" style={{fontSize:18,fontWeight:700,flex:1}}>{pgTitle[pg]||"SalesTrack"}</div>
     <input className="srch hdr-search" placeholder="Caută clienți, companii, agenți..." value={sr} onChange={e=>sSr(e.target.value)} key="app-search" style={{margin:0}}/>
     {dsk&&<div style={{fontSize:12,color:"#64748b",fontFamily:"'JetBrains Mono',monospace"}}>{new Date().toLocaleDateString("ro-RO",{weekday:"short",day:"numeric",month:"short"})}</div>}
