@@ -397,7 +397,7 @@ const dupO=o=>{const cc=gC(o.clientId);sMd({t:"no",d:{clientId:o.clientId,agentI
 const expCsv=(rows,name)=>{const hdr=["Client","Agent","Tip","Data","Ora","Durata","Status","Rezultat","Note"];const lines=[hdr.join(","),...rows.map(a=>{const c=gC(a.clientId);const g=gA(a.agentId);return['"'+(c?.company||"").replace(/"/g,'""')+'"','"'+(g?.name||"").replace(/"/g,'""')+'"',a.type||"",a.date||"",a.time||"",a.duration||"",a.status||"",a.result||"",'"'+(a.notes||"").replace(/"/g,'""')+'"'].join(",")})];const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const lnk=document.createElement("a");lnk.href=url;lnk.download=name+".csv";document.body.appendChild(lnk);lnk.click();document.body.removeChild(lnk);URL.revokeObjectURL(url)};
 const COLS=["#059669","#7c3aed","#0891b2","#e11d48","#ea580c","#65a30d","#0284c7","#9333ea"];
 const savAg=async(d,e)=>{if(!isAdm){show("⚠️ Doar admin");return;}const rec=e?{...d,color:d.color||COLS[0]}:{...d,id:uid(),color:COLS[ag.length%COLS.length]};const{error}=await sb.from('st_agents').upsert(toDb(rec));if(error){show("❌ "+error.message);return;}if(e)sAg(p=>p.map(a=>a.id===rec.id?rec:a));else sAg(p=>[...p,rec]);show(e?"✅ Agent salvat":"✅ Agent adăugat");sMd(null)};
-const delAg=async id=>{if(!isAdm){show("⚠️ Doar admin");return;}const{error}=await sb.from('st_agents').delete().eq('id',id);if(error){show("❌ "+error.message);return;}sAg(p=>p.filter(a=>a.id!==id));const fallback=ag.find(a=>a.id!==id)?.id||null;await sb.from('st_clients').update({agent_id:fallback}).eq('agent_id',id);sCl(p=>p.map(c2=>c2.agentId===id?{...c2,agentId:fallback}:c2));show("🗑 Agent șters");sCf(null);sMd(null)};
+const delAg=async id=>{if(!isAdm){show("⚠️ Doar admin");return;}const{error}=await sb.from('st_agents').delete().eq('id',id);if(error){show("❌ "+error.message);return;}sAg(p=>p.filter(a=>a.id!==id));const fallback=ag.find(a=>a.id!==id)?.id||null;const{error:e2}=await sb.from('st_clients').update({agent_id:fallback}).eq('agent_id',id);if(e2){show("⚠️ Agent șters, dar reasignare clienți eșuată: "+e2.message);return;}sCl(p=>p.map(c2=>c2.agentId===id?{...c2,agentId:fallback}:c2));show("🗑 Agent șters");sCf(null);sMd(null)};
 const getAdmP=()=>admPass;
 const setAdmP=async v=>{const{error}=await sb.from('st_settings').upsert({key:'admin_pass',value:v});if(!error)sAdmPass(v);};
 
@@ -1111,7 +1111,7 @@ const More=()=>{
         <div className="av" style={{background:x.color,width:28,height:28,fontSize:10}}>{mkA(x.name)}</div>
         <span style={{fontSize:12,flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{x.name}</span>
         <input id={"m-pw-"+x.id} placeholder={x.password?"●●● setat":"fără parolă"} style={{width:100,fontSize:11,padding:"6px 8px"}}/>
-        <button className="btn btn-s btn-p" style={{padding:"3px 8px",fontSize:10}} onClick={async()=>{const v=(document.getElementById("m-pw-"+x.id).value||"").trim();if(!v||v.length<3){show("⚠️ Min 3 car.");return;}await sb.from('st_agents').update({password:v}).eq('id',x.id);sAg(p=>p.map(a=>a.id===x.id?{...a,password:v}:a));show("✅ Parolă: "+x.name);document.getElementById("m-pw-"+x.id).value=""}}>Set</button>
+        <button className="btn btn-s btn-p" style={{padding:"3px 8px",fontSize:10}} onClick={async()=>{const v=(document.getElementById("m-pw-"+x.id).value||"").trim();if(!v||v.length<3){show("⚠️ Min 3 car.");return;}const{error}=await sb.from('st_agents').update({password:v}).eq('id',x.id);if(error){show("❌ "+error.message);return;}sAg(p=>p.map(a=>a.id===x.id?{...a,password:v}:a));show("✅ Parolă: "+x.name);document.getElementById("m-pw-"+x.id).value=""}}>Set</button>
       </div>)}
     </div>}
 
@@ -1255,8 +1255,9 @@ const renderMd=()=>{
   else if(md.t==="na"||md.t==="ea")ct=<AForm data={md.d}/>;
   else if(md.t==="no"||md.t==="eo")ct=<OForm data={md.d}/>;
   else if(md.t==="nag"||md.t==="eag")ct=<AgForm data={md.d}/>;
-  return<div className="overlay" onClick={e=>{if(e.target===e.currentTarget){if(moRef.current){const _mId=moRef.current.cId,_mD=moRef.current.data;sb.from('st_clients').update({monthly:_mD}).eq('id',_mId);sCl(p=>p.map(x=>x.id===_mId?{...x,monthly:_mD}:x));}sMd(null)}}}>
-    <div className="sheet"><div className="sheet-t"><span>{T[md.t]||""}</span><button className="sheet-x" onClick={()=>{if(moRef.current){const _mId=moRef.current.cId,_mD=moRef.current.data;sb.from('st_clients').update({monthly:_mD}).eq('id',_mId);sCl(p=>p.map(x=>x.id===_mId?{...x,monthly:_mD}:x));}sMd(null)}}>✕</button></div>{ct}</div>
+  const closeMd=async()=>{if(moRef.current){const _mId=moRef.current.cId,_mD=moRef.current.data;show("💾 Salvare...");const{error}=await sb.from('st_clients').update({monthly:_mD}).eq('id',_mId);if(error){show("❌ Nu s-a salvat: "+error.message);return;}sCl(p=>p.map(x=>x.id===_mId?{...x,monthly:_mD}:x));show("✅ Salvat");moRef.current=null;}sMd(null)};
+  return<div className="overlay" onClick={e=>{if(e.target===e.currentTarget)closeMd()}}>
+    <div className="sheet"><div className="sheet-t"><span>{T[md.t]||""}</span><button className="sheet-x" onClick={closeMd}>✕</button></div>{ct}</div>
   </div>;
 };
 
