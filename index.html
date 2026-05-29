@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#06080d">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fafbfc">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SalesTrack">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -263,7 +263,7 @@ button:active{transform:scale(0.96)}
   }).catch(function(e){console.warn('SW cleanup failed:',e)});
 })();
 /* === END KILL SWITCH === */
-window.APP_VERSION='2026-04-23.2';
+window.APP_VERSION='2026-04-23.3';
 var _errs=[];
 function showErr(msg){_errs.push(msg);var b=document.getElementById("errbox");if(b){b.style.display="block";b.textContent="ERORI:\n\n"+_errs.join("\n\n");}}
 window.onerror=function(msg,src,line){showErr(msg+" (linia "+line)};
@@ -1437,6 +1437,6 @@ return<div className="app">
 
 ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App/></ErrorBoundary>);;
 </script>
-<div id="ver-stamp" style="position:fixed;bottom:4px;right:6px;font-size:9px;color:#94a3b8;font-family:monospace;pointer-events:none;z-index:1;opacity:.6">v2026-04-23.2</div>
+<div id="ver-stamp" onclick="if(confirm('Forțezi update? Aplicația se va reîncărca curat.'))(async()=>{try{if('serviceWorker' in navigator){const r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(x=>x.unregister()));}if('caches' in window){const n=await caches.keys();await Promise.all(n.map(x=>caches.delete(x)));}sessionStorage.clear();localStorage.removeItem('sw_killed');}catch(e){}location.reload(true);})()" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#94a3b8;font-family:monospace;z-index:1;opacity:.7;cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.7);border-radius:6px;backdrop-filter:blur(4px);user-select:none">v2026-04-23.3</div>
 </body>
 </html>

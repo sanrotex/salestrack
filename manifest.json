@@ -3,8 +3,8 @@
   "short_name": "SalesTrack",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#06080d",
-  "theme_color": "#6366f1",
+  "background_color": "#fafbfc",
+  "theme_color": "#fafbfc",
   "orientation": "portrait",
   "icons": [
     {
