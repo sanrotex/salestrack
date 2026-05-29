@@ -263,7 +263,7 @@ button:active{transform:scale(0.96)}
   }).catch(function(e){console.warn('SW cleanup failed:',e)});
 })();
 /* === END KILL SWITCH === */
-window.APP_VERSION='2026-04-23.3';
+window.APP_VERSION='2026-04-23.4';
 var _errs=[];
 function showErr(msg){_errs.push(msg);var b=document.getElementById("errbox");if(b){b.style.display="block";b.textContent="ERORI:\n\n"+_errs.join("\n\n");}}
 window.onerror=function(msg,src,line){showErr(msg+" (linia "+line)};
@@ -1204,6 +1204,19 @@ const Reports=()=>{
 };
 
 const More=()=>{
+  const [syncing,sSyncing]=useState(false);
+  const [syncRes,sSyncRes]=useState(null);
+  const forceSync=async()=>{
+    if(!confirm("Trimite TOT ce vezi pe ecran (clienți, activități, oferte) către Supabase?\n\nUtilizeaz-o dacă suspectezi că salvările anterioare nu au ajuns la server. NU face refresh înainte!"))return;
+    sSyncing(true);sSyncRes(null);
+    let okC=0,okA=0,okO=0,errC=0,errA=0,errO=0;
+    for(const c of cl){const{error}=await sb.from('st_clients').upsert(toDb(c));if(error)errC++;else okC++;}
+    for(const a of ac){const{error}=await sb.from('st_activities').upsert(toDb(a));if(error)errA++;else okA++;}
+    for(const o of of){const{error}=await sb.from('st_offers').upsert(toDb(o));if(error)errO++;else okO++;}
+    sSyncing(false);
+    sSyncRes({okC,okA,okO,errC,errA,errO});
+    show(`✅ Sincronizat: ${okC} clienți, ${okA} activități, ${okO} oferte${errC+errA+errO>0?` · ${errC+errA+errO} erori`:""}`);
+  };
   return<div>
     <div style={{background:"var(--card)",borderRadius:12,padding:16,border:"1px solid rgba(16,185,129,.3)",marginBottom:16}}>
       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
@@ -1211,6 +1224,16 @@ const More=()=>{
         <div style={{fontSize:15,fontWeight:700,color:"#34d399"}}>✅ Supabase Online</div>
       </div>
       <div style={{fontSize:12,color:"var(--muted)"}}>{ag.length} agenți · {cl.length} clienți · {ac.length} activități · {of.length} oferte</div>
+    </div>
+
+    <div style={{background:"var(--card)",borderRadius:12,padding:16,border:"1px solid rgba(245,158,11,.3)",marginBottom:16}}>
+      <div style={{fontSize:14,fontWeight:700,marginBottom:6,color:"#f59e0b"}}>🔄 Sincronizare forțată</div>
+      <div style={{fontSize:12,color:"var(--muted)",marginBottom:10,lineHeight:1.5}}>Dacă suspectezi că o salvare nu a ajuns la server, apasă pentru a împinge TOT ce vezi pe ecran către Supabase. <b>NU face refresh înainte!</b></div>
+      <button className="btn btn-s" disabled={syncing} onClick={forceSync} style={{background:syncing?"var(--bg2)":"#f59e0b",color:"#fff",width:"100%",fontSize:13}}>{syncing?"⏳ Se sincronizează...":"🔄 Trimite tot la Supabase"}</button>
+      {syncRes&&<div style={{marginTop:10,padding:10,background:"var(--bg2)",borderRadius:8,fontSize:11,color:"var(--muted)"}}>
+        ✅ {syncRes.okC} clienți · {syncRes.okA} activități · {syncRes.okO} oferte<br/>
+        {(syncRes.errC+syncRes.errA+syncRes.errO)>0&&<span style={{color:"#ef4444"}}>❌ Erori: {syncRes.errC+syncRes.errA+syncRes.errO}</span>}
+      </div>}
     </div>
 
     <div style={{display:"flex",alignItems:"center",marginBottom:8}}><div className="stitle" style={{flex:1,margin:0}}>👤 Agenți ({ag.length})</div>{isAdm&&<button className="btn btn-s btn-p" style={{padding:"4px 10px",fontSize:11}} onClick={()=>sMd({t:"nag"})}>+ Agent</button>}</div>
@@ -1437,6 +1460,6 @@ return<div className="app">
 
 ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App/></ErrorBoundary>);;
 </script>
-<div id="ver-stamp" onclick="if(confirm('Forțezi update? Aplicația se va reîncărca curat.'))(async()=>{try{if('serviceWorker' in navigator){const r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(x=>x.unregister()));}if('caches' in window){const n=await caches.keys();await Promise.all(n.map(x=>caches.delete(x)));}sessionStorage.clear();localStorage.removeItem('sw_killed');}catch(e){}location.reload(true);})()" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#94a3b8;font-family:monospace;z-index:1;opacity:.7;cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.7);border-radius:6px;backdrop-filter:blur(4px);user-select:none">v2026-04-23.3</div>
+<div id="ver-stamp" onclick="if(confirm('Forțezi update? Aplicația se va reîncărca curat.'))(async()=>{try{if('serviceWorker' in navigator){const r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(x=>x.unregister()));}if('caches' in window){const n=await caches.keys();await Promise.all(n.map(x=>caches.delete(x)));}sessionStorage.clear();localStorage.removeItem('sw_killed');}catch(e){}location.reload(true);})()" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#94a3b8;font-family:monospace;z-index:1;opacity:.7;cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.7);border-radius:6px;backdrop-filter:blur(4px);user-select:none">v2026-04-23.4</div>
 </body>
 </html>
