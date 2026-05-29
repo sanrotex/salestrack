@@ -240,6 +240,30 @@ button:active{transform:scale(0.96)}
 <div id="root"></div>
 <div id="errbox" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#0d0f14;color:#f87171;padding:30px 16px;font-size:12px;font-family:monospace;z-index:99999;overflow-y:auto;white-space:pre-wrap;line-height:1.8"></div>
 <script>
+/* === SW KILL SWITCH (anti-stale-cache) === */
+(function(){
+  if(!('serviceWorker' in navigator))return;
+  navigator.serviceWorker.getRegistrations().then(function(regs){
+    var hadSW=regs.length>0;
+    Promise.all(regs.map(function(r){return r.unregister()})).then(function(){
+      if('caches' in window){
+        caches.keys().then(function(names){
+          Promise.all(names.map(function(n){return caches.delete(n)})).then(function(){
+            if(hadSW&&!sessionStorage.getItem('sw_killed')){
+              sessionStorage.setItem('sw_killed','1');
+              location.reload(true);
+            }
+          });
+        });
+      } else if(hadSW&&!sessionStorage.getItem('sw_killed')){
+        sessionStorage.setItem('sw_killed','1');
+        location.reload(true);
+      }
+    });
+  }).catch(function(e){console.warn('SW cleanup failed:',e)});
+})();
+/* === END KILL SWITCH === */
+window.APP_VERSION='2026-04-23.2';
 var _errs=[];
 function showErr(msg){_errs.push(msg);var b=document.getElementById("errbox");if(b){b.style.display="block";b.textContent="ERORI:\n\n"+_errs.join("\n\n");}}
 window.onerror=function(msg,src,line){showErr(msg+" (linia "+line)};
@@ -1413,11 +1437,6 @@ return<div className="app">
 
 ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App/></ErrorBoundary>);;
 </script>
+<div id="ver-stamp" style="position:fixed;bottom:4px;right:6px;font-size:9px;color:#94a3b8;font-family:monospace;pointer-events:none;z-index:1;opacity:.6">v2026-04-23.2</div>
 </body>
-<script>
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){r.unregister()})});
-  caches.keys().then(function(names){names.forEach(function(n){caches.delete(n)})});
-}
-</script>
 </html>
