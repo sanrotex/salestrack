@@ -345,6 +345,7 @@ const [pg,sPg]=useState("home");
 const [navHist,sNavHist]=useState([]);
 const lastPgRef=useRef("home");
 const [qa,sQa]=useState(null);
+const [ow,sOw]=useState(null);
 const [ag,sAg]=useState([]);
 const [cl,sCl]=useState([]);
 const [ac,sAc]=useState([]);
@@ -393,6 +394,7 @@ useEffect(()=>{
   lastPgRef.current=pg;
 },[pg]);
 const goBack=useCallback(()=>{
+  if(ow){sOw(null);return;}
   if(qa){sQa(null);return;}
   if(md){sMd(null);return;}
   if(cf){sCf(null);return;}
@@ -956,21 +958,21 @@ const Home=()=>{
         <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{fmtD(a.date)} · {a.notes||"Apel programat"}</div></div>
         <div style={{display:"flex",gap:6}}>
           {c?.phone&&<a className="btn btn-s" href={"tel:"+c.phone} onClick={e=>e.stopPropagation()} style={{background:"#f59e0b",color:"#fff",textDecoration:"none"}}>📞</a>}
-          <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>
+          <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();sOw(a)}}>✓</button>
         </div>
       </div>})}</>}
     {ovOther.length>0&&<><div className="stitle" style={{color:"#f87171"}}>🔴 De rezolvat ({ovOther.length})</div>
       {ovOther.map(a=>{const c=gC(a.clientId);return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})}>
         <span style={{fontSize:22}}>{tI(a.type)}</span>
         <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{fmtD(a.date)} · {a.notes}</div></div>
-        <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>
+        <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();sOw(a)}}>✓</button>
       </div>})}</>}
     <div className="stitle">📅 Următoarele zile</div>
     {up.map(a=>{const c=gC(a.clientId);const g=gA(a.agentId);return<div key={a.id} className="li" onClick={()=>sMd({t:"ea",d:a})}>
       <span style={{fontSize:22}}>{tI(a.type)}</span>
       <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{(c?c.name:"")} · {(g?g.name:"")}</div></div>
       <div className="li-r"><div className="M" style={{fontSize:13,fontWeight:600,color:a.date===td?"#fbbf24":"#94a3b8"}}>{fmtD(a.date)}</div><div style={{fontSize:11,color:"var(--dim)"}}>{a.time}</div></div>
-      <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>
+      <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();sOw(a)}}>✓</button>
     </div>})}
     {up.length===0&&<div className="empty"><span className="empty-emoji">🌤️</span>Niciun plan pe moment.<br/>Adaugă o activitate când vrei.</div>}
   </div>;
@@ -1096,7 +1098,7 @@ const Acts=()=>{
         <td style={{fontSize:12,color:"#94a3b8",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.notes}</td>
         <td style={{whiteSpace:"nowrap"}} onClick={e=>e.stopPropagation()}>
           <button className="btn btn-s btn-g" onClick={()=>sMd({t:"ea",d:a})} style={{padding:"4px 8px",fontSize:11}}>✏️</button>
-          {a.status==="planificat"&&<button className="btn btn-s btn-ok" style={{marginLeft:4,padding:"4px 8px",fontSize:11}} onClick={()=>finA(a)}>✓</button>}
+          {a.status==="planificat"&&<button className="btn btn-s btn-ok" style={{marginLeft:4,padding:"4px 8px",fontSize:11}} onClick={()=>sOw(a)}>✓</button>}
           <button className="btn btn-s btn-g" style={{marginLeft:4,padding:"4px 8px",fontSize:11,color:"#ef4444"}} onClick={()=>sCf({msg:"Ștergi activitatea?",ok:()=>delA(a.id)})}>🗑</button>
         </td>
       </tr>})}</tbody></table>
@@ -1109,7 +1111,7 @@ const Acts=()=>{
       <span style={{fontSize:20}}>{tI(a.type)}</span>
       <div className="li-b"><div className="li-t">{(c?c.company:"—")}</div><div className="li-s">{(c?c.name:"")} · {a.notes}</div></div>
       <div className="li-r"><div className="M" style={{fontSize:11,color:late?"#f87171":a.date===td?"#fbbf24":"#94a3b8"}}>{fmtD(a.date)} {a.time}</div><span className={"badge "+(a.status==="finalizat"?"bgr":a.status==="in_desfasurare"?"by":late?"br":"bb")} style={{fontSize:10}}>{a.status}</span></div>
-      {a.status==="planificat"&&<button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}}>✓</button>}
+      {a.status==="planificat"&&<button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();sOw(a)}}>✓</button>}
       <button className="btn btn-s btn-g" style={{padding:"6px 8px",fontSize:11,color:"#ef4444"}} onClick={e=>{e.stopPropagation();sCf({msg:"Ștergi activitatea?",ok:()=>delA(a.id)})}}>🗑</button>
     </div>})}
     {!dsk&&fl.length===0&&<div className="empty"><span className="empty-emoji">📅</span>Nicio activitate de afișat.<br/>Schimbă filtrele sau adaugă una nouă.</div>}
@@ -1174,14 +1176,14 @@ const FollowUp=()=>{
       <span style={{fontSize:18}}>📞</span>
       <div className="li-b"><div className="li-t">{cc?.company||"—"}</div><div className="li-s">{cc?.name} · {a.notes}</div></div>
       <div className="li-r"><div className="M" style={{fontSize:11,color:"#f87171"}}>{fmtD(a.date)}</div></div>
-      <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}} style={{padding:"4px 8px"}}>✓</button>
+      <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();sOw(a)}} style={{padding:"4px 8px"}}>✓</button>
     </div>})}</>}
     <div className="stitle">📞 Programate ({upCalls.length})</div>
     {upCalls.map(a=>{const cc=gC(a.clientId);return<div key={a.id} className="li" style={{padding:12}} onClick={()=>sMd({t:"ea",d:a})}>
       <span style={{fontSize:18}}>📞</span>
       <div className="li-b"><div className="li-t">{cc?.company||"—"}</div><div className="li-s">{cc?.name} · {a.notes}</div></div>
       <div className="li-r"><div className="M" style={{fontSize:11,color:a.date===td?"#fbbf24":"#94a3b8"}}>{fmtD(a.date)} {a.time}</div></div>
-      <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}} style={{padding:"4px 8px"}}>✓</button>
+      <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();sOw(a)}} style={{padding:"4px 8px"}}>✓</button>
     </div>})}
     {upCalls.length===0&&<div className="empty"><span className="empty-emoji">📞</span>Niciun apel programat.<br/>Programează unul pentru azi sau mâine.</div>}
     <div className="stitle" style={{color:"#f59e0b"}}>⚠️ De Contactat — 14+ zile ({stale.length})</div>
@@ -1421,7 +1423,7 @@ const CDet=({c})=>{
               {a.createdAt&&<div style={{fontSize:10,color:"var(--dim)"}}>📝 {fmtTs(a.createdAt)}</div>}
               {a.notes&&<div style={{fontSize:11,color:"#94a3b8",marginTop:1}}>{a.notes}</div>}
             </div>
-            <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}} style={{padding:"4px 8px",fontSize:11}}>✓</button>
+            <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();sOw(a)}} style={{padding:"4px 8px",fontSize:11}}>✓</button>
           </div>})}</>}
           {dn.length>0&&<div style={{marginTop:pl.length>0?8:0}}>{dn.slice(0,6).map(a=>{const ty=TY.find(t=>t.id===a.type)||TY[0];return<div key={a.id} onClick={()=>sMd({t:"ea",d:a})} style={{display:"flex",gap:10,padding:"8px 12px",marginBottom:4,background:"rgba(16,185,129,.04)",borderRadius:8,border:"1px solid rgba(16,185,129,.1)",alignItems:"center"}}>
             <div style={{fontSize:16}}>{ty.i}</div>
@@ -1588,6 +1590,125 @@ const QuickAdd=()=>{
   </div>;
 };
 
+const OutcomeWizard=()=>{
+  const a=ow;
+  const c=gC(a?.clientId);
+  const [outcome,sOutcome]=useState(null);
+  const [stageNew,sStageNew]=useState(c?.stage||"lead");
+  const [nextAct,sNextAct]=useState(null);
+  const [saving,sSaving]=useState(false);
+  const cfg={
+    telefon:{i:"📞",l:"Telefon",sg:{
+      pozitiv:[{t:"telefon",d:7,l:"📞 Resun peste o săptămână",h:10},{t:"email",d:1,l:"✉️ Email recapitulare mâine",h:9},{t:"vizita",d:14,l:"🚗 Programez vizită peste 2 săpt.",h:10}],
+      neutru:[{t:"telefon",d:3,l:"📞 Resun peste 3 zile",h:10},{t:"email",d:1,l:"✉️ Email cu detalii mâine",h:9}],
+      negativ:[{t:"telefon",d:21,l:"📞 Resun peste 3 săptămâni",h:10}]
+    }},
+    vizita:{i:"🚗",l:"Vizită",sg:{
+      pozitiv:[{t:"email",d:1,l:"✉️ Email recap în 24h",h:9},{t:"telefon",d:3,l:"📞 Telefon confirmare peste 3 zile",h:10},{t:"vizita",d:30,l:"🚗 Vizită follow-up peste o lună",h:10}],
+      neutru:[{t:"telefon",d:7,l:"📞 Telefon follow-up săptămâna viitoare",h:10},{t:"email",d:2,l:"✉️ Email cu detalii",h:9}],
+      negativ:[{t:"telefon",d:30,l:"📞 Resun peste o lună",h:10}]
+    }},
+    email:{i:"✉️",l:"Email",sg:{
+      pozitiv:[{t:"telefon",d:3,l:"📞 Telefon confirmare peste 3 zile",h:10},{t:"vizita",d:14,l:"🚗 Programez vizită",h:10}],
+      neutru:[{t:"telefon",d:5,l:"📞 Telefon urmărire peste 5 zile",h:10}],
+      negativ:[{t:"telefon",d:14,l:"📞 Telefon peste 2 săptămâni",h:10}]
+    }},
+    meeting:{i:"🤝",l:"Meeting",sg:{
+      pozitiv:[{t:"email",d:1,l:"✉️ Email rezumat în 24h",h:9},{t:"telefon",d:7,l:"📞 Urmărire săptămâna viitoare",h:10}],
+      neutru:[{t:"email",d:2,l:"✉️ Email cu detalii peste 2 zile",h:9}],
+      negativ:[{t:"telefon",d:14,l:"📞 Resun peste 2 săptămâni",h:10}]
+    }},
+    contract:{i:"📝",l:"Contract",sg:{
+      pozitiv:[{t:"telefon",d:30,l:"📞 Follow-up peste o lună",h:10}],
+      neutru:[{t:"telefon",d:14,l:"📞 Verificare peste 2 săptămâni",h:10}],
+      negativ:[{t:"telefon",d:7,l:"📞 Telefon clarificare",h:10}]
+    }}
+  };
+  const tCfg=cfg[a?.type]||cfg.telefon;
+  const suggestions=outcome?(tCfg.sg[outcome]||[]):[];
+
+  const confirm=async()=>{
+    if(!outcome){show("⚠️ Alege rezultatul");return;}
+    sSaving(true);
+    const updated={...a,status:"finalizat",result:outcome};
+    const{error:e1}=await sb.from('st_activities').upsert(toDb(updated));
+    if(e1){show("❌ "+e1.message);sSaving(false);return;}
+    sAc(p=>p.map(x=>x.id===a.id?updated:x));
+    sb.from('st_clients').update({last_contact:td}).eq('id',a.clientId);
+    sCl(p=>p.map(x=>x.id===a.clientId?{...x,lastContact:td}:x));
+    if(c&&stageNew!==c.stage){
+      const{error:e2}=await sb.from('st_clients').update({stage:stageNew}).eq('id',c.id);
+      if(!e2)sCl(p=>p.map(x=>x.id===c.id?{...x,stage:stageNew}:x));
+    }
+    let nextLabel="";
+    if(nextAct){
+      const dt=new Date();dt.setDate(dt.getDate()+nextAct.d);
+      const dateStr=dt.toISOString().split('T')[0];
+      const newAct={
+        id:uid(),
+        type:nextAct.t,
+        clientId:a.clientId,
+        agentId:a.agentId,
+        date:dateStr,
+        time:(nextAct.h||10).toString().padStart(2,'0')+":00",
+        duration:nextAct.t==="telefon"?10:nextAct.t==="vizita"?60:5,
+        status:"planificat",
+        result:"",
+        notes:"Auto din "+a.type+" "+a.date,
+        createdAt:new Date().toISOString()
+      };
+      const{error:e3}=await sb.from('st_activities').upsert(toDb(newAct));
+      if(!e3){sAc(p=>[newAct,...p]);nextLabel=" + "+nextAct.l;}
+    }
+    sSaving(false);
+    show("✅ Finalizat"+nextLabel);
+    sOw(null);
+  };
+
+  if(!a)return null;
+  return<div className="overlay" onClick={e=>{if(e.target===e.currentTarget)sOw(null)}}>
+    <div className="sheet" style={{maxWidth:520}}>
+      <div className="sheet-t">
+        <span style={{fontSize:17}}>{tCfg.i} {c?.company||"Client"}</span>
+        <button className="sheet-x" onClick={()=>sOw(null)}>✕</button>
+      </div>
+      <div style={{fontSize:12,color:"var(--muted)",marginTop:-8,marginBottom:14}}>{tCfg.l} · {a.date} {a.time}</div>
+
+      <div style={{fontSize:11,color:"var(--muted)",fontWeight:700,textTransform:"uppercase",letterSpacing:.5,marginBottom:6}}>1. Cum a mers?</div>
+      <div className="qchips">
+        <div className={"qchip"+(outcome==="pozitiv"?" on":"")} onClick={()=>sOutcome("pozitiv")} style={outcome==="pozitiv"?{background:"linear-gradient(135deg,#10b981,#059669)"}:{}}>😊 Pozitiv</div>
+        <div className={"qchip"+(outcome==="neutru"?" on":"")} onClick={()=>sOutcome("neutru")}>😐 Neutru</div>
+        <div className={"qchip"+(outcome==="negativ"?" on":"")} onClick={()=>sOutcome("negativ")} style={outcome==="negativ"?{background:"linear-gradient(135deg,#ef4444,#dc2626)"}:{}}>😞 Negativ</div>
+      </div>
+
+      {c&&<>
+        <div style={{fontSize:11,color:"var(--muted)",fontWeight:700,textTransform:"uppercase",letterSpacing:.5,marginBottom:6,display:"flex",justifyContent:"space-between"}}>
+          <span>2. Stage client</span>
+          {stageNew!==c.stage&&<span style={{color:"var(--accent)",textTransform:"none",letterSpacing:0}}>schimbat!</span>}
+        </div>
+        <div className="qchips">
+          {ST.map(s=><div key={s.id} className={"qchip"+(stageNew===s.id?" on":"")} onClick={()=>sStageNew(s.id)}>{s.i} {s.l}</div>)}
+        </div>
+      </>}
+
+      {outcome&&suggestions.length>0&&<>
+        <div style={{fontSize:11,color:"var(--muted)",fontWeight:700,textTransform:"uppercase",letterSpacing:.5,marginBottom:6}}>3. Următoarea acțiune (opțional)</div>
+        <div style={{display:"grid",gap:6,marginBottom:14}}>
+          {suggestions.map((s,i)=><div key={i} onClick={()=>sNextAct(nextAct?.l===s.l?null:s)} style={{padding:"12px 14px",background:nextAct?.l===s.l?"linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.06))":"var(--bg2)",borderRadius:12,border:nextAct?.l===s.l?"1px solid var(--accent)":"1px solid var(--border)",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:14,fontWeight:600}}>
+            <span>{s.l}</span>
+            {nextAct?.l===s.l&&<span style={{color:"var(--accent)",fontSize:18}}>✓</span>}
+          </div>)}
+          <div onClick={()=>sNextAct(null)} style={{padding:"10px 14px",background:nextAct===null?"var(--bg2)":"transparent",borderRadius:12,border:"1px dashed var(--border)",cursor:"pointer",fontSize:12,color:"var(--muted)",textAlign:"center"}}>Nimic — doar marchez ca finalizat</div>
+        </div>
+      </>}
+
+      <button className="btn btn-f" disabled={saving||!outcome} onClick={confirm} style={{background:(!outcome||saving)?"var(--bg2)":"linear-gradient(135deg,#10b981,#059669)",color:!outcome?"var(--muted)":"#fff",fontSize:15,padding:"14px",borderRadius:14}}>
+        {saving?"⏳ Salvare...":"✅ Confirmă"}
+      </button>
+    </div>
+  </div>;
+};
+
 const NAV=[["home","🏠","Acasă"],["clients","👥","Clienți"],["acts","📅","Activități"],["offers","📄","Oferte"],["followup","📞","Follow-up"],["more","⚙️","Mai mult"]];
 const NAV2=isAdm?[["home","🏠","Acasă"],["clients","👥","Clienți"],["acts","📅","Activități"],["offers","📄","Oferte"],["followup","📞","Follow-up"],["reports","📈","Rapoarte"],["more","⚙️","Setări"]]:NAV;
 
@@ -1623,6 +1744,7 @@ return<div className="app">
     <div className="qbtn eml" onClick={()=>sQa({type:"email"})}><span className="qbtn-i">✉️</span><span className="qbtn-l">Email</span></div>
   </div>}
   {qa&&<QuickAdd/>}
+  {ow&&<OutcomeWizard/>}
   <div className="nav">
     {dsk&&<div style={{padding:20,display:"flex",alignItems:"center",gap:12,borderBottom:"1px solid var(--border)"}}>
       <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:800,color:"white",flexShrink:0}}>S</div>
