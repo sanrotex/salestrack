@@ -1445,6 +1445,8 @@ const QuickAdd=()=>{
   const [srch,sSrch]=useState("");
   const [saving,sSaving]=useState(false);
   const [rec,sRec]=useState(false);
+  const [interim,sInterim]=useState("");
+  const [lang,sLang]=useState(localStorage.getItem('voice_lang')||'ro-RO');
   const recRef=useRef(null);
   const type=qa?.type||"telefon";
   const cfg={
@@ -1463,14 +1465,30 @@ const QuickAdd=()=>{
 
   const startRec=()=>{
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR){show("🎤 Nu e suportat pe acest browser");return;}
-    const r=new SR();r.lang='ro-RO';r.continuous=false;r.interimResults=false;
-    r.onresult=(e)=>{const txt=e.results[0][0].transcript;sNotes(n=>n?n+" "+txt:txt);sRec(false);};
-    r.onerror=()=>sRec(false);
-    r.onend=()=>sRec(false);
-    try{r.start();recRef.current=r;sRec(true);}catch(e){sRec(false);}
+    if(!SR){show("🎤 Nu e suportat pe acest browser. Folosește 🎤 din tastatură.");return;}
+    const r=new SR();r.lang=lang;r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+    let finalTxt="";
+    r.onresult=(e)=>{
+      let it="";
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const t=e.results[i][0].transcript;
+        if(e.results[i].isFinal)finalTxt+=" "+t;else it+=t;
+      }
+      sInterim(it);
+      if(finalTxt.trim()){sNotes(n=>n?n+" "+finalTxt.trim():finalTxt.trim());finalTxt="";}
+    };
+    r.onerror=(e)=>{
+      if(e.error==='no-speech')show("🎤 Nu s-a auzit nimic");
+      else if(e.error==='not-allowed')show("🎤 Permisiune microfon refuzată");
+      else if(e.error==='language-not-supported')show("🎤 Limba "+lang+" nu e suportată pe acest device");
+      else show("🎤 Eroare: "+e.error);
+      sRec(false);sInterim("");
+    };
+    r.onend=()=>{sRec(false);sInterim("");};
+    try{r.start();recRef.current=r;sRec(true);}catch(e){sRec(false);show("🎤 Nu am putut porni microfonul");}
   };
-  const stopRec=()=>{if(recRef.current){try{recRef.current.stop();}catch(_){}}sRec(false);};
+  const stopRec=()=>{if(recRef.current){try{recRef.current.stop();}catch(_){}}sRec(false);sInterim("");};
+  const toggleLang=()=>{const nl=lang==='ro-RO'?'en-US':'ro-RO';sLang(nl);try{localStorage.setItem('voice_lang',nl);}catch(_){}show("🎤 "+(nl==='ro-RO'?'Română':'Engleză'));};
 
   const save=async()=>{
     if(!cId){show("⚠️ Alege un client");return;}
@@ -1525,11 +1543,19 @@ const QuickAdd=()=>{
         {cfg.chips.map(c=><div key={c} className={"qchip"+(res===c?" on":"")} onClick={()=>sRes(c)}>{c}</div>)}
       </div>
 
-      <div style={{fontSize:11,color:"var(--muted)",fontWeight:700,textTransform:"uppercase",letterSpacing:.5,marginBottom:6}}>3. Notițe (opțional)</div>
-      <div style={{position:"relative",marginBottom:14}}>
-        <textarea value={notes} onChange={e=>sNotes(e.target.value)} placeholder="Detalii apel/vizită..." style={{paddingRight:50,minHeight:60}}/>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+        <span style={{fontSize:11,color:"var(--muted)",fontWeight:700,textTransform:"uppercase",letterSpacing:.5}}>3. Notițe (opțional)</span>
+        <button onClick={toggleLang} type="button" style={{background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:8,padding:"3px 8px",fontSize:11,color:"var(--muted)",cursor:"pointer",fontWeight:600}}>🎤 {lang==='ro-RO'?'RO':'EN'}</button>
+      </div>
+      <div style={{position:"relative",marginBottom:8}}>
+        <textarea value={notes} onChange={e=>sNotes(e.target.value)} placeholder={"Detalii apel/vizită... (sau apasă 🎤 pentru dictare în "+(lang==='ro-RO'?'română':'engleză')+")"} style={{paddingRight:50,minHeight:60}}/>
         <button className={"mic-btn"+(rec?" rec":"")} onClick={rec?stopRec:startRec} type="button">{rec?"⏹":"🎤"}</button>
       </div>
+      {(rec||interim)&&<div style={{padding:"8px 12px",background:"rgba(239,68,68,.06)",border:"1px solid rgba(239,68,68,.2)",borderRadius:10,fontSize:13,color:"var(--text)",marginBottom:14,minHeight:30}}>
+        {rec&&<span style={{color:"#ef4444",fontWeight:700,marginRight:8}}>● REC</span>}
+        <span style={{color:"var(--muted)",fontStyle:"italic"}}>{interim||"Vorbește..."}</span>
+      </div>}
+      {!rec&&!interim&&<div style={{marginBottom:14}}/>}
 
       <button className="btn btn-f" disabled={saving} onClick={save} style={{background:saving?"var(--muted)":"linear-gradient(135deg,#6366f1,#8b5cf6)",color:"#fff",fontSize:15,padding:"14px",borderRadius:14}}>
         {saving?"⏳ Salvare...":"✅ Salvează acum"}
