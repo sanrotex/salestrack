@@ -846,11 +846,28 @@ const Home=()=>{
   const ovCalls=ov.filter(a=>a.type==="telefon");
   const ovOther=ov.filter(a=>a.type!=="telefon");
   const motivM=todayCt===0&&ov.length===0?"Zi liniștită azi. Profită să suni câțiva clienți.":todayCt>0?`Ai ${todayCt} ${todayCt===1?"activitate":"activități"} programate pentru azi.`:ov.length>0?`Ai ${ov.length} ${ov.length===1?"activitate restantă":"activități restante"}. Hai să le rezolvăm.`:"";
+  const cliSearch=sr?mCl.filter(c=>((c.company||"")+" "+(c.name||"")+" "+(c.cui||"")+" "+(c.phone||"")).toLowerCase().includes(sr.toLowerCase())).slice(0,8):[];
   return<div>
-    <div className="greet">
+    {!sr&&<div className="greet">
       <div className="greet-h">{greet}, {firstName}! {wave}</div>
       {motivM&&<div className="greet-s">{motivM}</div>}
-    </div>
+    </div>}
+
+    {sr&&cliSearch.length>0&&<div style={{marginBottom:18}}>
+      <div className="stitle" style={{marginTop:0}}>🔍 Clienți găsiți ({cliSearch.length})</div>
+      {cliSearch.map(c=>{const g=gA(c.agentId);const s=sI(c.stage);return<div key={c.id} className="li" onClick={()=>sMd({t:"vc",d:c})}>
+        <div className="av" style={{background:g?.color||"#6366f1"}}>{mkA(c.company||c.name||"?")}</div>
+        <div className="li-b">
+          <div className="li-t">{c.company||"—"}</div>
+          <div className="li-s">{c.name||""}{c.phone?" · "+c.phone:""}{g?" · "+g.name:""}</div>
+        </div>
+        <span className={"badge "+s.b} style={{fontSize:10}}>{s.i}</span>
+      </div>})}
+    </div>}
+    {sr&&cliSearch.length===0&&<div style={{marginBottom:18}}>
+      <div className="stitle" style={{marginTop:0}}>🔍 Caut „{sr}"</div>
+      <div className="empty"><span className="empty-emoji">🤷</span>Niciun client găsit cu „{sr}"<br/><small>Mai jos vezi activități cu acest text.</small></div>
+    </div>}
 
     {isAgt&&target>0&&<div style={{background:"var(--card)",borderRadius:18,padding:18,border:"1px solid var(--border)",marginBottom:14,boxShadow:"var(--shadow)"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
