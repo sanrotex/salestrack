@@ -1480,56 +1480,35 @@ const QuickAdd=()=>{
   },[ac,cl,myAId,isAgt]);
   const filtered=srch?cliRanked.filter(c=>(c.company+" "+(c.name||"")).toLowerCase().includes(srch.toLowerCase())).slice(0,30):cliRanked.slice(0,12);
 
-  const interimRef=useRef("");
   const startRec=()=>{
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR){show("🎤 Nu e suportat pe acest browser. Folosește 🎤 din tastatură.");return;}
-    const r=new SR();r.lang=lang;r.continuous=false;r.interimResults=true;r.maxAlternatives=1;
-    interimRef.current="";
+    if(!SR){show("🎤 Nu e suportat pe acest browser");return;}
+    const r=new SR();
+    r.lang=lang;
+    r.continuous=false;
+    r.interimResults=false;
     r.onresult=(e)=>{
-      let newFinal="";let it="";
-      for(let i=e.resultIndex;i<e.results.length;i++){
-        const t=e.results[i][0].transcript;
-        if(e.results[i].isFinal)newFinal+=" "+t;else it+=t;
-      }
-      interimRef.current=it;
-      sInterim(it);
-      if(newFinal.trim()){sNotes(n=>n?n+" "+newFinal.trim():newFinal.trim());}
+      const txt=e.results[0][0].transcript;
+      sNotes(n=>n?n+" "+txt:txt);
+      sRec(false);
     };
     r.onerror=(e)=>{
       if(e.error==='no-speech')show("🎤 Nu s-a auzit nimic");
       else if(e.error==='not-allowed')show("🎤 Permisiune microfon refuzată");
-      else if(e.error==='language-not-supported')show("🎤 Limba "+lang+" nu e suportată pe acest device");
       else show("🎤 Eroare: "+e.error);
-      // Salveaza interim ramas chiar si la eroare
-      if(interimRef.current.trim()){sNotes(n=>n?n+" "+interimRef.current.trim():interimRef.current.trim());}
-      interimRef.current="";sRec(false);sInterim("");
+      sRec(false);
     };
-    r.onend=()=>{
-      // CRUCIAL: salveaza textul interim ramas in notițe inainte de a inchide
-      if(interimRef.current.trim()){sNotes(n=>n?n+" "+interimRef.current.trim():interimRef.current.trim());}
-      interimRef.current="";sRec(false);sInterim("");
-    };
-    try{r.start();recRef.current=r;sRec(true);}catch(e){sRec(false);show("🎤 Nu am putut porni microfonul");}
+    r.onend=()=>sRec(false);
+    try{r.start();recRef.current=r;sRec(true);}catch(e){sRec(false);}
   };
-  const stopRec=()=>{
-    // Salveaza interim ramas inainte sa opresti
-    if(interimRef.current.trim()){sNotes(n=>n?n+" "+interimRef.current.trim():interimRef.current.trim());interimRef.current="";}
-    if(recRef.current){try{recRef.current.stop();}catch(_){}}
-    sRec(false);sInterim("");
-  };
+  const stopRec=()=>{if(recRef.current){try{recRef.current.stop();}catch(_){}}sRec(false);};
   const toggleLang=()=>{const nl=lang==='ro-RO'?'en-US':'ro-RO';sLang(nl);try{localStorage.setItem('voice_lang',nl);}catch(_){}show("🎤 "+(nl==='ro-RO'?'Română':'Engleză'));};
 
   const save=async()=>{
     if(!cId){show("⚠️ Alege un client");return;}
     if(!res){show("⚠️ Alege rezultatul");return;}
-    // Daca microfonul inca asculta, opreste-l si flush interim
-    let finalNotes=notes;
-    if(interimRef.current.trim()){
-      finalNotes=notes?notes+" "+interimRef.current.trim():interimRef.current.trim();
-      interimRef.current="";
-    }
     if(recRef.current){try{recRef.current.stop();}catch(_){}}
+    const finalNotes=notes;
     sSaving(true);
     const now=new Date();
     const t=now.getHours().toString().padStart(2,'0')+":"+now.getMinutes().toString().padStart(2,'0');
