@@ -1484,7 +1484,7 @@ const QuickAdd=()=>{
   const startRec=()=>{
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!SR){show("🎤 Nu e suportat pe acest browser. Folosește 🎤 din tastatură.");return;}
-    const r=new SR();r.lang=lang;r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+    const r=new SR();r.lang=lang;r.continuous=false;r.interimResults=true;r.maxAlternatives=1;
     interimRef.current="";
     r.onresult=(e)=>{
       let newFinal="";let it="";
@@ -1523,6 +1523,13 @@ const QuickAdd=()=>{
   const save=async()=>{
     if(!cId){show("⚠️ Alege un client");return;}
     if(!res){show("⚠️ Alege rezultatul");return;}
+    // Daca microfonul inca asculta, opreste-l si flush interim
+    let finalNotes=notes;
+    if(interimRef.current.trim()){
+      finalNotes=notes?notes+" "+interimRef.current.trim():interimRef.current.trim();
+      interimRef.current="";
+    }
+    if(recRef.current){try{recRef.current.stop();}catch(_){}}
     sSaving(true);
     const now=new Date();
     const t=now.getHours().toString().padStart(2,'0')+":"+now.getMinutes().toString().padStart(2,'0');
@@ -1536,7 +1543,7 @@ const QuickAdd=()=>{
       duration:cfg.dur,
       status:"finalizat",
       result:res,
-      notes:notes,
+      notes:finalNotes,
       createdAt:now.toISOString()
     };
     const{error}=await sb.from('st_activities').upsert(toDb(rec));
