@@ -263,7 +263,7 @@ button:active{transform:scale(0.96)}
   }).catch(function(e){console.warn('SW cleanup failed:',e)});
 })();
 /* === END KILL SWITCH === */
-window.APP_VERSION='2026-04-23.5';
+window.APP_VERSION='2026-04-23.6';
 var _errs=[];
 function showErr(msg){_errs.push(msg);var b=document.getElementById("errbox");if(b){b.style.display="block";b.textContent="ERORI:\n\n"+_errs.join("\n\n");}}
 window.onerror=function(msg,src,line){showErr(msg+" (linia "+line)};
@@ -1402,9 +1402,18 @@ const renderMd=()=>{
   else if(md.t==="na"||md.t==="ea")ct=<AForm data={md.d}/>;
   else if(md.t==="no"||md.t==="eo")ct=<OForm data={md.d}/>;
   else if(md.t==="nag"||md.t==="eag")ct=<AgForm data={md.d}/>;
-  const closeMd=async()=>{if(moRef.current){const _mId=moRef.current.cId,_mD=moRef.current.data;show("💾 Salvare...");const{error}=await sb.from('st_clients').update({monthly:_mD}).eq('id',_mId);if(error){show("❌ Nu s-a salvat: "+error.message);return;}sCl(p=>p.map(x=>x.id===_mId?{...x,monthly:_mD}:x));show("✅ Salvat");moRef.current=null;}sMd(null)};
+  const isForm=/^(n|e)(c|a|o|ag)$/.test(md.t||"");
+  const closeMd=async(bypass)=>{
+    // Pentru forme cu date (activitate/oferta/client/agent), cere confirmare inainte de close fara save
+    if(isForm&&!bypass){
+      sCf({msg:"Ai modificări nesalvate? Închizi fără să salvezi?",ok:()=>{sCf(null);closeMd(true);}});
+      return;
+    }
+    if(moRef.current){const _mId=moRef.current.cId,_mD=moRef.current.data;show("💾 Salvare...");const{error}=await sb.from('st_clients').update({monthly:_mD}).eq('id',_mId);if(error){show("❌ Nu s-a salvat: "+error.message);return;}sCl(p=>p.map(x=>x.id===_mId?{...x,monthly:_mD}:x));show("✅ Salvat");moRef.current=null;}
+    sMd(null);
+  };
   return<div className="overlay" onClick={e=>{if(e.target===e.currentTarget)closeMd()}}>
-    <div className="sheet"><div className="sheet-t"><span>{T[md.t]||""}</span><button className="sheet-x" onClick={closeMd}>✕</button></div>{ct}</div>
+    <div className="sheet"><div className="sheet-t"><span>{T[md.t]||""}</span><button className="sheet-x" onClick={()=>closeMd()}>✕</button></div>{ct}</div>
   </div>;
 };
 
@@ -1461,6 +1470,6 @@ return<div className="app">
 
 ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App/></ErrorBoundary>);;
 </script>
-<div id="ver-stamp" onclick="if(confirm('Forțezi update? Aplicația se va reîncărca curat.'))(async()=>{try{if('serviceWorker' in navigator){const r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(x=>x.unregister()));}if('caches' in window){const n=await caches.keys();await Promise.all(n.map(x=>caches.delete(x)));}sessionStorage.clear();localStorage.removeItem('sw_killed');}catch(e){}location.reload(true);})()" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#94a3b8;font-family:monospace;z-index:1;opacity:.7;cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.7);border-radius:6px;backdrop-filter:blur(4px);user-select:none">v2026-04-23.5</div>
+<div id="ver-stamp" onclick="if(confirm('Forțezi update? Aplicația se va reîncărca curat.'))(async()=>{try{if('serviceWorker' in navigator){const r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(x=>x.unregister()));}if('caches' in window){const n=await caches.keys();await Promise.all(n.map(x=>caches.delete(x)));}sessionStorage.clear();localStorage.removeItem('sw_killed');}catch(e){}location.reload(true);})()" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#94a3b8;font-family:monospace;z-index:1;opacity:.7;cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.7);border-radius:6px;backdrop-filter:blur(4px);user-select:none">v2026-04-23.6</div>
 </body>
 </html>
