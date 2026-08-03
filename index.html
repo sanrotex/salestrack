@@ -263,7 +263,7 @@ button:active{transform:scale(0.96)}
   }).catch(function(e){console.warn('SW cleanup failed:',e)});
 })();
 /* === END KILL SWITCH === */
-window.APP_VERSION='2026-04-23.6';
+window.APP_VERSION='2026-04-23.7';
 var _errs=[];
 function showErr(msg){_errs.push(msg);var b=document.getElementById("errbox");if(b){b.style.display="block";b.textContent="ERORI:\n\n"+_errs.join("\n\n");}}
 window.onerror=function(msg,src,line){showErr(msg+" (linia "+line)};
@@ -1377,13 +1377,13 @@ const CDet=({c})=>{
             </div>
             <button className="btn btn-s btn-ok" onClick={e=>{e.stopPropagation();finA(a)}} style={{padding:"4px 8px",fontSize:11}}>✓</button>
           </div>})}</>}
-          {dn.length>0&&<div style={{marginTop:pl.length>0?8:0}}>{dn.slice(0,6).map(a=>{const ty=TY.find(t=>t.id===a.type)||TY[0];return<div key={a.id} onClick={()=>sMd({t:"ea",d:a})} style={{display:"flex",gap:10,padding:"8px 12px",marginBottom:4,background:"rgba(16,185,129,.04)",borderRadius:8,border:"1px solid rgba(16,185,129,.1)",alignItems:"center"}}>
+          {dn.length>0&&<div style={{marginTop:pl.length>0?8:0}}>{dn.map(a=>{const ty=TY.find(t=>t.id===a.type)||TY[0];return<div key={a.id} onClick={()=>sMd({t:"ea",d:a})} style={{display:"flex",gap:10,padding:"8px 12px",marginBottom:4,background:"rgba(16,185,129,.04)",borderRadius:8,border:"1px solid rgba(16,185,129,.1)",alignItems:"center"}}>
             <div style={{fontSize:16}}>{ty.i}</div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontSize:12,fontWeight:600}}>{ty.l} <span style={{fontWeight:400,color:"var(--dim)"}}>{fmtD(a.date)}</span> <span>{a.result==="pozitiv"?"✅":a.result==="negativ"?"❌":"⚪"}</span>{a.createdAt&&<span style={{fontSize:9,color:"var(--dim)"}}> · 📝{fmtTs(a.createdAt)}</span>}</div>
               {a.notes&&<div style={{fontSize:11,color:"#94a3b8"}}>{a.notes}</div>}
             </div>
-          </div>})}{dn.length>6&&<div style={{fontSize:11,color:"var(--dim)",textAlign:"center"}}>+{dn.length-6} mai vechi</div>}</div>}
+          </div>})}</div>}
         </div>;
       })()}
     </div>}
@@ -1470,6 +1470,6 @@ return<div className="app">
 
 ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App/></ErrorBoundary>);;
 </script>
-<div id="ver-stamp" onclick="if(confirm('Forțezi update? Aplicația se va reîncărca curat.'))(async()=>{try{if('serviceWorker' in navigator){const r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(x=>x.unregister()));}if('caches' in window){const n=await caches.keys();await Promise.all(n.map(x=>caches.delete(x)));}sessionStorage.clear();localStorage.removeItem('sw_killed');}catch(e){}location.reload(true);})()" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#94a3b8;font-family:monospace;z-index:1;opacity:.7;cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.7);border-radius:6px;backdrop-filter:blur(4px);user-select:none">v2026-04-23.6</div>
+<div id="ver-stamp" onclick="if(confirm('Forțezi update? Aplicația se va reîncărca curat.'))(async()=>{try{if('serviceWorker' in navigator){const r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(x=>x.unregister()));}if('caches' in window){const n=await caches.keys();await Promise.all(n.map(x=>caches.delete(x)));}sessionStorage.clear();localStorage.removeItem('sw_killed');}catch(e){}location.reload(true);})()" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#94a3b8;font-family:monospace;z-index:1;opacity:.7;cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.7);border-radius:6px;backdrop-filter:blur(4px);user-select:none">v2026-04-23.7</div>
 </body>
 </html>
