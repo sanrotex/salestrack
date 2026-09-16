@@ -263,7 +263,7 @@ button:active{transform:scale(0.96)}
   }).catch(function(e){console.warn('SW cleanup failed:',e)});
 })();
 /* === END KILL SWITCH === */
-window.APP_VERSION='2026-04-23.7';
+window.APP_VERSION='2026-09-16.1';
 var _errs=[];
 function showErr(msg){_errs.push(msg);var b=document.getElementById("errbox");if(b){b.style.display="block";b.textContent="ERORI:\n\n"+_errs.join("\n\n");}}
 window.onerror=function(msg,src,line){showErr(msg+" (linia "+line)};
@@ -1335,8 +1335,8 @@ const CDet=({c})=>{
     <MoTable c={c}/>
     <div className="acts">
       {ph&&<a href={"tel:"+ph} className="ab" style={{color:"var(--green)"}}><span style={{fontSize:20}}>📞</span>Sună</a>}
-      <div className="ab" onClick={()=>sMd({t:"na",d:{clientId:c.id,agentId:c.agentId||"",type:"vizita",date:td,time:nwT(),duration:60,status:"planificat",result:"",notes:""}})}><span style={{fontSize:20}}>📅</span>Vizită</div>
-      <div className="ab" onClick={()=>sMd({t:"no",d:{clientId:c.id,agentId:isAgt?myAId:c.agentId||"",status:"draft",validUntil:"",items:[{desc:"",qty:1,price:0}],discount:0,notes:""}})}><span style={{fontSize:20}}>📄</span>Ofertă</div>
+      <div className="ab" onClick={()=>sCf({msg:"Adaugi vizită planificată pentru "+c.company+"?",ok:()=>{sCf(null);sMd({t:"na",d:{clientId:c.id,agentId:c.agentId||"",type:"vizita",date:td,time:nwT(),duration:60,status:"planificat",result:"",notes:""}})}})}><span style={{fontSize:20}}>📅</span>Vizită</div>
+      <div className="ab" onClick={()=>sCf({msg:"Creezi ofertă nouă pentru "+c.company+"?",ok:()=>{sCf(null);sMd({t:"no",d:{clientId:c.id,agentId:isAgt?myAId:c.agentId||"",status:"draft",validUntil:"",items:[{desc:"",qty:1,price:0}],discount:0,notes:""}})}})}><span style={{fontSize:20}}>📄</span>Ofertă</div>
       <div className="ab" onClick={()=>{sMd(null);setTimeout(()=>sPdfTgt({clientId:c.id,agentId:isAgt?myAId:c.agentId}),100)}}><span style={{fontSize:20}}>📎</span>PDF ({getCAtt(c.id).length})</div>
       {(isAdm||c.agentId===myAId||!c.agentId)&&<div className="ab" onClick={()=>sMd({t:"ec",d:c})}><span style={{fontSize:20}}>✏️</span>Editează</div>}
       {isAdm&&<div className="ab" style={{color:"var(--red)"}} onClick={()=>sCf({msg:"Ștergi "+c.company+"?",ok:()=>delC(c.id)})}><span style={{fontSize:20}}>🗑</span>Șterge</div>}
@@ -1470,6 +1470,6 @@ return<div className="app">
 
 ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App/></ErrorBoundary>);;
 </script>
-<div id="ver-stamp" onclick="if(confirm('Forțezi update? Aplicația se va reîncărca curat.'))(async()=>{try{if('serviceWorker' in navigator){const r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(x=>x.unregister()));}if('caches' in window){const n=await caches.keys();await Promise.all(n.map(x=>caches.delete(x)));}sessionStorage.clear();localStorage.removeItem('sw_killed');}catch(e){}location.reload(true);})()" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#94a3b8;font-family:monospace;z-index:1;opacity:.7;cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.7);border-radius:6px;backdrop-filter:blur(4px);user-select:none">v2026-04-23.7</div>
+<div id="ver-stamp" onclick="if(confirm('Forțezi update? Aplicația se va reîncărca curat.'))(async()=>{try{if('serviceWorker' in navigator){const r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(x=>x.unregister()));}if('caches' in window){const n=await caches.keys();await Promise.all(n.map(x=>caches.delete(x)));}sessionStorage.clear();localStorage.removeItem('sw_killed');}catch(e){}location.reload(true);})()" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#94a3b8;font-family:monospace;z-index:1;opacity:.7;cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.7);border-radius:6px;backdrop-filter:blur(4px);user-select:none">v2026-09-16.1</div>
 </body>
 </html>
